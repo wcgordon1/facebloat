@@ -5,20 +5,25 @@ import { useConvexMutation } from "@convex-dev/react-query";
 import { api } from "@cvx/_generated/api";
 
 type CaptureMode = "camera" | "upload" | null;
-type CaptureState = "idle" | "camera-active" | "photo-taken" | "uploading" | "success";
+type CaptureState = "idle" | "camera-loading" | "camera-active" | "photo-taken" | "uploading" | "success";
 
 export function SelfieCapture() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
   const [captureMode, setCaptureMode] = useState<CaptureMode>(null);
   const [captureState, setCaptureState] = useState<CaptureState>("idle");
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log("Capture state changed to:", captureState);
+  }, [captureState]);
 
   // Convex mutations
   const generateUploadUrl = useConvexMutation(api.selfies.generateSelfieUploadUrl);
@@ -26,23 +31,36 @@ export function SelfieCapture() {
 
   // Cleanup stream when component unmounts or camera is stopped
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+    console.log("stopCamera called, current stream:", streamRef.current);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        console.log("Stopping track:", track.kind, track.readyState);
+        track.stop();
+      });
+      streamRef.current = null;
     }
     setCaptureState("idle");
     setCaptureMode(null);
-  }, [stream]);
+  }, []);
 
+  // Only cleanup on unmount
   useEffect(() => {
-    return () => stopCamera();
-  }, [stopCamera]);
+    return () => {
+      if (streamRef.current) {
+        console.log("Component unmounting, cleaning up stream");
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   // Start camera
   const startCamera = useCallback(async () => {
     try {
       setError(null);
       setCameraPermissionDenied(false);
+      setCaptureState("camera-loading");
+      
+      console.log("Requesting camera access...");
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -53,17 +71,152 @@ export function SelfieCapture() {
         audio: false
       });
       
-      setStream(mediaStream);
-      setCaptureMode("camera");
-      setCaptureState("camera-active");
+      console.log("Camera access granted, setting up video...");
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+      streamRef.current = mediaStream;
+      setCaptureMode("camera");
+      
+      console.log("About to set up video...");
+      console.log("videoRef.current:", videoRef.current);
+      console.log("mediaStream:", mediaStream);
+      
+      if (!videoRef.current) {
+        console.error("ERROR: videoRef.current is null!");
+        setError("Video element not found");
+        setCaptureState("idle");
+        return;
+      }
+      
+      try {
+        const video = videoRef.current;
+        console.log("Video element found, proceeding with setup...");
+        
+        console.log("Setting up video element...");
+        console.log("Video element before setup:", {
+          srcObject: video.srcObject,
+          readyState: video.readyState,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight
+        });
+        
+        video.srcObject = mediaStream;
+        
+        console.log("Video srcObject set to stream");
+        console.log("MediaStream details:", {
+          id: mediaStream.id,
+          active: mediaStream.active,
+          tracks: mediaStream.getTracks().map(t => ({ kind: t.kind, readyState: t.readyState }))
+        });
+        
+        let hasActivated = false;
+        
+        const activateCamera = (source: string) => {
+          if (hasActivated) return;
+          hasActivated = true;
+          console.log(`Activating camera view from: ${source}`);
+          setCaptureState("camera-active");
+        };
+        
+        // Set up ALL the video events for debugging
+        video.onloadstart = () => console.log("Video: loadstart");
+        video.onloadedmetadata = () => {
+          console.log("Video: loadedmetadata", {
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            duration: video.duration
+          });
+          activateCamera("loadedmetadata");
+        };
+        video.onloadeddata = () => {
+          console.log("Video: loadeddata");
+          activateCamera("loadeddata");
+        };
+        video.oncanplay = () => {
+          console.log("Video: canplay");
+          activateCamera("canplay");
+        };
+        video.oncanplaythrough = () => {
+          console.log("Video: canplaythrough");
+          activateCamera("canplaythrough");
+        };
+        video.onplay = () => console.log("Video: play event fired");
+        video.onplaying = () => {
+          console.log("Video: playing event fired");
+          activateCamera("playing");
+        };
+        video.onerror = (e) => {
+          console.error("Video: error event", e);
+          setError("Video playback error");
+          setCaptureState("idle");
+        };
+        video.onstalled = () => console.log("Video: stalled");
+        video.onsuspend = () => console.log("Video: suspend");
+        video.onwaiting = () => console.log("Video: waiting");
+        
+        // Immediate check of video state
+        console.log("Immediate video state after srcObject:", {
+          readyState: video.readyState,
+          networkState: video.networkState,
+          paused: video.paused,
+          ended: video.ended
+        });
+        
+        // Try to play immediately
+        console.log("Attempting to play video...");
+        video.play()
+          .then(() => {
+            console.log("Video.play() succeeded");
+            activateCamera("play-success");
+          })
+          .catch((playError) => {
+            console.log("Video.play() failed:", playError);
+            // Don't activate on play failure, wait for events
+          });
+        
+        // Aggressive fallback - activate after 2 seconds no matter what
+        setTimeout(() => {
+          console.log("2-second fallback timer firing...");
+          if (!hasActivated) {
+            console.log("No video events fired, forcing activation");
+            activateCamera("fallback-timer");
+          } else {
+            console.log("Camera already activated, fallback not needed");
+          }
+        }, 2000);
+        
+        // Check video state periodically
+        const checkInterval = setInterval(() => {
+          console.log("Periodic video check:", {
+            readyState: video.readyState,
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            paused: video.paused,
+            currentTime: video.currentTime
+          });
+          
+          // If video has dimensions, it's ready
+          if (video.videoWidth > 0 && video.videoHeight > 0) {
+            console.log("Video has dimensions, activating!");
+            clearInterval(checkInterval);
+            activateCamera("dimensions-check");
+          }
+        }, 500);
+        
+        // Clear interval after 5 seconds max
+        setTimeout(() => {
+          clearInterval(checkInterval);
+        }, 5000);
+        
+      } catch (videoError) {
+        console.error("ERROR in video setup:", videoError);
+        setError(`Video setup failed: ${videoError.message}`);
+        setCaptureState("idle");
       }
     } catch (err) {
       console.error("Camera access error:", err);
       setCameraPermissionDenied(true);
       setError("Camera access denied. You can still upload a photo from your device.");
+      setCaptureState("idle");
     }
   }, []);
 
@@ -81,8 +234,15 @@ export function SelfieCapture() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
+    // Flip the canvas horizontally to match what user sees
+    ctx.scale(-1, 1);
+    ctx.translate(-canvas.width, 0);
+    
     // Draw video frame to canvas
     ctx.drawImage(video, 0, 0);
+    
+    // Reset transformations
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     
     // Get image data as base64
     const dataUrl = canvas.toDataURL("image/png", 0.8);
@@ -281,7 +441,7 @@ export function SelfieCapture() {
         )}
 
         {/* Camera View */}
-        {captureState === "camera-active" && (
+        {(captureState === "camera-loading" || captureState === "camera-active") && (
           <div className="relative">
             <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
               <video
@@ -289,33 +449,80 @@ export function SelfieCapture() {
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-auto"
-              />
-              
-              {/* Oval Mask Overlay */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  WebkitMaskImage:
-                    "radial-gradient(ellipse 46% 62% at 50% 45%, #000 60%, transparent 62%)",
-                  maskImage:
-                    "radial-gradient(ellipse 46% 62% at 50% 45%, #000 60%, transparent 62%)",
-                  background: "rgba(0,0,0,0.45)",
+                className="w-full h-auto transform scale-x-[-1]"
+                style={{ 
+                  minHeight: '300px',
+                  maxHeight: '500px',
+                  backgroundColor: '#f0f0f0',
+                  opacity: captureState === "camera-active" ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
                 }}
+                onLoadStart={() => console.log("Video: loadstart event")}
+                onLoadedData={() => console.log("Video: loadeddata event")}
+                onCanPlay={() => console.log("Video: canplay event")}
+                onPlay={() => console.log("Video: play event")}
+                onPlaying={() => console.log("Video: playing event")}
               />
               
-              {/* Oval Guide Ring */}
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="h-[70%] w-[58%] rounded-[50%] ring-2 ring-white/85" />
-              </div>
+              {/* Oval Mask Overlay - Only show when camera is active */}
+              {captureState === "camera-active" && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    WebkitMaskImage:
+                      "radial-gradient(ellipse 46% 62% at 50% 45%, transparent 58%, #000 60%)",
+                    maskImage:
+                      "radial-gradient(ellipse 46% 62% at 50% 45%, transparent 58%, #000 60%)",
+                    background: "rgba(0,0,0,0.6)",
+                  }}
+                />
+              )}
+              
+              {/* Oval Guide Ring - Only show when camera is active */}
+              {captureState === "camera-active" && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div 
+                    className="rounded-[50%] ring-2 ring-white/90 shadow-lg"
+                    style={{
+                      width: '46%',
+                      height: '62%',
+                      position: 'absolute',
+                      top: '45%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Loading Overlay (during camera setup) */}
+              {captureState === "camera-loading" && (
+                <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p className="text-sm">Setting up camera...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Instructions (when camera is active) */}
+              {captureState === "camera-active" && (
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                    Position your face in the oval
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex gap-3 mt-4">
-              <Button onClick={capturePhoto} className="flex-1">
-                <Camera className="h-4 w-4 mr-2" />
-                Capture Photo
-              </Button>
+              {captureState === "camera-active" && (
+                <Button onClick={capturePhoto} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <Camera className="h-4 w-4 mr-2" />
+                  Capture Photo
+                </Button>
+              )}
               <Button variant="outline" onClick={stopCamera}>
                 Cancel
               </Button>
