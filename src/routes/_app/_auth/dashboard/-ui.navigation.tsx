@@ -4,11 +4,11 @@ import {
   Slash,
   Check,
   Settings,
+  CreditCard,
   LogOut,
 } from "lucide-react";
 import { cn, useSignOut } from "@/utils/misc";
 import { ThemeSwitcher } from "@/ui/theme-switcher";
-import { LanguageSwitcher } from "@/ui/language-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,8 +22,12 @@ import { buttonVariants } from "@/ui/button-util";
 import { Logo } from "@/ui/logo";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { Route as DashboardRoute } from "@/routes/_app/_auth/dashboard/_layout.index";
+import { Route as SelfieRoute } from "@/routes/_app/_auth/dashboard/_layout.selfie";
+import { Route as ExerciseRoute } from "@/routes/_app/_auth/dashboard/_layout.exercise";
+import { Route as DietRoute } from "@/routes/_app/_auth/dashboard/_layout.diet";
 import { Route as SettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.index";
 import { Route as BillingSettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.billing";
+
 import { User } from "~/types";
 import { PLANS } from "@cvx/schema";
 
@@ -32,8 +36,10 @@ export function Navigation({ user }: { user: User }) {
   const matchRoute = useMatchRoute();
   const navigate = useNavigate();
   const isDashboardPath = matchRoute({ to: DashboardRoute.fullPath });
-  const isSettingsPath = matchRoute({ to: SettingsRoute.fullPath });
-  const isBillingPath = matchRoute({ to: BillingSettingsRoute.fullPath });
+  const isSelfiePath = matchRoute({ to: SelfieRoute.fullPath });
+  const isExercisePath = matchRoute({ to: ExerciseRoute.fullPath });
+  const isDietPath = matchRoute({ to: DietRoute.fullPath });
+
 
   if (!user) {
     return null;
@@ -109,22 +115,7 @@ export function Navigation({ user }: { user: User }) {
                 <Check className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60" />
               </DropdownMenuItem>
 
-              {user.subscription?.planKey === PLANS.FREE && (
-                <>
-                  <DropdownMenuSeparator className="mx-0 my-2" />
-                  <DropdownMenuItem className="p-0 focus:bg-transparent">
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() =>
-                        navigate({ to: BillingSettingsRoute.fullPath })
-                      }
-                    >
-                      Upgrade to PRO
-                    </Button>
-                  </DropdownMenuItem>
-                </>
-              )}
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -167,6 +158,17 @@ export function Navigation({ user }: { user: User }) {
               </DropdownMenuItem>
 
               <DropdownMenuItem
+                className="group h-9 w-full cursor-pointer justify-between rounded-md px-2"
+                onClick={() => navigate({ to: BillingSettingsRoute.fullPath })}
+              >
+                <span className="text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
+                  Billing
+                </span>
+                <CreditCard className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60 group-hover:text-primary group-focus:text-primary" />
+              </DropdownMenuItem>
+
+
+              <DropdownMenuItem
                 className={cn(
                   "group flex h-9 justify-between rounded-md px-2 hover:bg-transparent",
                 )}
@@ -175,17 +177,6 @@ export function Navigation({ user }: { user: User }) {
                   Theme
                 </span>
                 <ThemeSwitcher />
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className={cn(
-                  "group flex h-9 justify-between rounded-md px-2 hover:bg-transparent",
-                )}
-              >
-                <span className="w-full text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
-                  Language
-                </span>
-                <LanguageSwitcher />
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="mx-0 my-2" />
@@ -223,33 +214,49 @@ export function Navigation({ user }: { user: User }) {
         <div
           className={cn(
             `flex h-12 items-center border-b-2`,
-            isSettingsPath ? "border-primary" : "border-transparent",
+            isSelfiePath ? "border-primary" : "border-transparent",
           )}
         >
           <Link
-            to={SettingsRoute.fullPath}
+            to={SelfieRoute.fullPath}
             className={cn(
               `${buttonVariants({ variant: "ghost", size: "sm" })} text-primary/80`,
             )}
           >
-            Settings
+            Selfie
           </Link>
         </div>
         <div
           className={cn(
             `flex h-12 items-center border-b-2`,
-            isBillingPath ? "border-primary" : "border-transparent",
+            isExercisePath ? "border-primary" : "border-transparent",
           )}
         >
           <Link
-            to={BillingSettingsRoute.fullPath}
+            to={ExerciseRoute.fullPath}
             className={cn(
               `${buttonVariants({ variant: "ghost", size: "sm" })} text-primary/80`,
             )}
           >
-            Billing
+            Exercise
           </Link>
         </div>
+        <div
+          className={cn(
+            `flex h-12 items-center border-b-2`,
+            isDietPath ? "border-primary" : "border-transparent",
+          )}
+        >
+          <Link
+            to={DietRoute.fullPath}
+            className={cn(
+              `${buttonVariants({ variant: "ghost", size: "sm" })} text-primary/80`,
+            )}
+          >
+            Diet
+          </Link>
+        </div>
+
       </div>
     </nav>
   );

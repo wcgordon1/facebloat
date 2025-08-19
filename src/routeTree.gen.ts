@@ -23,6 +23,9 @@ import { Route as AppAuthDashboardLayoutImport } from './routes/_app/_auth/dashb
 import { Route as AppAuthDashboardLayoutIndexImport } from './routes/_app/_auth/dashboard/_layout.index'
 import { Route as AppAuthOnboardingLayoutUsernameImport } from './routes/_app/_auth/onboarding/_layout.username'
 import { Route as AppAuthDashboardLayoutSettingsImport } from './routes/_app/_auth/dashboard/_layout.settings'
+import { Route as AppAuthDashboardLayoutSelfieImport } from './routes/_app/_auth/dashboard/_layout.selfie'
+import { Route as AppAuthDashboardLayoutExerciseImport } from './routes/_app/_auth/dashboard/_layout.exercise'
+import { Route as AppAuthDashboardLayoutDietImport } from './routes/_app/_auth/dashboard/_layout.diet'
 import { Route as AppAuthDashboardLayoutCheckoutImport } from './routes/_app/_auth/dashboard/_layout.checkout'
 import { Route as AppAuthDashboardLayoutSettingsIndexImport } from './routes/_app/_auth/dashboard/_layout.settings.index'
 import { Route as AppAuthDashboardLayoutSettingsBillingImport } from './routes/_app/_auth/dashboard/_layout.settings.billing'
@@ -102,6 +105,25 @@ const AppAuthDashboardLayoutSettingsRoute =
     path: '/settings',
     getParentRoute: () => AppAuthDashboardLayoutRoute,
   } as any)
+
+const AppAuthDashboardLayoutSelfieRoute =
+  AppAuthDashboardLayoutSelfieImport.update({
+    path: '/selfie',
+    getParentRoute: () => AppAuthDashboardLayoutRoute,
+  } as any)
+
+const AppAuthDashboardLayoutExerciseRoute =
+  AppAuthDashboardLayoutExerciseImport.update({
+    path: '/exercise',
+    getParentRoute: () => AppAuthDashboardLayoutRoute,
+  } as any)
+
+const AppAuthDashboardLayoutDietRoute = AppAuthDashboardLayoutDietImport.update(
+  {
+    path: '/diet',
+    getParentRoute: () => AppAuthDashboardLayoutRoute,
+  } as any,
+)
 
 const AppAuthDashboardLayoutCheckoutRoute =
   AppAuthDashboardLayoutCheckoutImport.update({
@@ -202,6 +224,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAuthDashboardLayoutCheckoutImport
       parentRoute: typeof AppAuthDashboardLayoutImport
     }
+    '/_app/_auth/dashboard/_layout/diet': {
+      id: '/_app/_auth/dashboard/_layout/diet'
+      path: '/diet'
+      fullPath: '/dashboard/diet'
+      preLoaderRoute: typeof AppAuthDashboardLayoutDietImport
+      parentRoute: typeof AppAuthDashboardLayoutImport
+    }
+    '/_app/_auth/dashboard/_layout/exercise': {
+      id: '/_app/_auth/dashboard/_layout/exercise'
+      path: '/exercise'
+      fullPath: '/dashboard/exercise'
+      preLoaderRoute: typeof AppAuthDashboardLayoutExerciseImport
+      parentRoute: typeof AppAuthDashboardLayoutImport
+    }
+    '/_app/_auth/dashboard/_layout/selfie': {
+      id: '/_app/_auth/dashboard/_layout/selfie'
+      path: '/selfie'
+      fullPath: '/dashboard/selfie'
+      preLoaderRoute: typeof AppAuthDashboardLayoutSelfieImport
+      parentRoute: typeof AppAuthDashboardLayoutImport
+    }
     '/_app/_auth/dashboard/_layout/settings': {
       id: '/_app/_auth/dashboard/_layout/settings'
       path: '/settings'
@@ -249,6 +292,9 @@ export const routeTree = rootRoute.addChildren({
       AppAuthDashboardRoute: AppAuthDashboardRoute.addChildren({
         AppAuthDashboardLayoutRoute: AppAuthDashboardLayoutRoute.addChildren({
           AppAuthDashboardLayoutCheckoutRoute,
+          AppAuthDashboardLayoutDietRoute,
+          AppAuthDashboardLayoutExerciseRoute,
+          AppAuthDashboardLayoutSelfieRoute,
           AppAuthDashboardLayoutSettingsRoute:
             AppAuthDashboardLayoutSettingsRoute.addChildren({
               AppAuthDashboardLayoutSettingsBillingRoute,
@@ -327,6 +373,9 @@ export const routeTree = rootRoute.addChildren({
       "parent": "/_app/_auth/dashboard",
       "children": [
         "/_app/_auth/dashboard/_layout/checkout",
+        "/_app/_auth/dashboard/_layout/diet",
+        "/_app/_auth/dashboard/_layout/exercise",
+        "/_app/_auth/dashboard/_layout/selfie",
         "/_app/_auth/dashboard/_layout/settings",
         "/_app/_auth/dashboard/_layout/"
       ]
@@ -351,6 +400,18 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_app/_auth/dashboard/_layout/checkout": {
       "filePath": "_app/_auth/dashboard/_layout.checkout.tsx",
+      "parent": "/_app/_auth/dashboard/_layout"
+    },
+    "/_app/_auth/dashboard/_layout/diet": {
+      "filePath": "_app/_auth/dashboard/_layout.diet.tsx",
+      "parent": "/_app/_auth/dashboard/_layout"
+    },
+    "/_app/_auth/dashboard/_layout/exercise": {
+      "filePath": "_app/_auth/dashboard/_layout.exercise.tsx",
+      "parent": "/_app/_auth/dashboard/_layout"
+    },
+    "/_app/_auth/dashboard/_layout/selfie": {
+      "filePath": "_app/_auth/dashboard/_layout.selfie.tsx",
       "parent": "/_app/_auth/dashboard/_layout"
     },
     "/_app/_auth/dashboard/_layout/settings": {
