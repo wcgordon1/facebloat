@@ -29,7 +29,6 @@ import { Route as SettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.se
 import { Route as BillingSettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.billing";
 
 import { User } from "~/types";
-import { PLANS } from "@cvx/schema";
 
 export function Navigation({ user }: { user: User }) {
   const signOut = useSignOut();

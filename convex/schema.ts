@@ -83,6 +83,28 @@ const schema = defineSchema({
   })
     .index("userId", ["userId"])
     .index("stripeId", ["stripeId"]),
+  selfiePhotos: defineTable({
+    userId: v.id("users"),
+    storageId: v.id("_storage"),
+    originalFilename: v.optional(v.string()),
+    mimeType: v.string(),
+    fileSize: v.number(),
+    captureMethod: v.union(v.literal("camera"), v.literal("upload")),
+    metadata: v.optional(v.object({
+      width: v.optional(v.number()),
+      height: v.optional(v.number()),
+      deviceInfo: v.optional(v.string()),
+    })),
+    // Future AI analysis fields
+    analysisData: v.optional(v.any()),
+    analysisStatus: v.optional(v.union(
+      v.literal("pending"),
+      v.literal("processing"),
+      v.literal("completed"),
+      v.literal("failed")
+    )),
+  })
+    .index("userId", ["userId"]),
 });
 
 export default schema;

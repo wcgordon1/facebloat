@@ -23,6 +23,7 @@ import type * as http from "../http.js";
 import type * as init from "../init.js";
 import type * as otp_ResendOTP from "../otp/ResendOTP.js";
 import type * as otp_VerificationCodeEmail from "../otp/VerificationCodeEmail.js";
+import type * as selfies from "../selfies.js";
 import type * as stripe from "../stripe.js";
 
 /**
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   init: typeof init;
   "otp/ResendOTP": typeof otp_ResendOTP;
   "otp/VerificationCodeEmail": typeof otp_VerificationCodeEmail;
+  selfies: typeof selfies;
   stripe: typeof stripe;
 }>;
 export declare const api: FilterApi<
