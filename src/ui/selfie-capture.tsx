@@ -30,8 +30,8 @@ export function SelfieCapture() {
   const uploadSelfie = useConvexMutation(api.selfies.uploadSelfie);
 
   // Cleanup stream when component unmounts or camera is stopped
-  const stopCamera = useCallback(() => {
-    console.log("stopCamera called, current stream:", streamRef.current);
+  const stopCamera = useCallback((resetState = true) => {
+    console.log("stopCamera called, resetState:", resetState, "current stream:", streamRef.current);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         console.log("Stopping track:", track.kind, track.readyState);
@@ -39,8 +39,12 @@ export function SelfieCapture() {
       });
       streamRef.current = null;
     }
-    setCaptureState("idle");
-    setCaptureMode(null);
+    
+    // Only reset state if explicitly requested (default behavior)
+    if (resetState) {
+      setCaptureState("idle");
+      setCaptureMode(null);
+    }
   }, []);
 
   // Only cleanup on unmount
@@ -209,7 +213,7 @@ export function SelfieCapture() {
         
       } catch (videoError) {
         console.error("ERROR in video setup:", videoError);
-        setError(`Video setup failed: ${videoError.message}`);
+        setError(`Video setup failed: ${videoError instanceof Error ? videoError.message : 'Unknown error'}`);
         setCaptureState("idle");
       }
     } catch (err) {
@@ -222,17 +226,38 @@ export function SelfieCapture() {
 
   // Capture photo from video stream
   const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log("🎯 Capture Photo clicked!");
+    console.log("videoRef.current:", videoRef.current);
+    console.log("canvasRef.current:", canvasRef.current);
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error("❌ Missing video or canvas ref");
+      return;
+    }
     
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     
-    if (!ctx) return;
+    if (!ctx) {
+      console.error("❌ Could not get canvas context");
+      return;
+    }
+    
+    console.log("🎥 Video dimensions:", {
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight,
+      readyState: video.readyState
+    });
     
     // Set canvas size to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
+    console.log("📐 Canvas size set to:", {
+      width: canvas.width,
+      height: canvas.height
+    });
     
     // Flip the canvas horizontally to match what user sees
     ctx.scale(-1, 1);
@@ -244,24 +269,51 @@ export function SelfieCapture() {
     // Reset transformations
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     
-    // Get image data as base64
-    const dataUrl = canvas.toDataURL("image/png", 0.8);
-    setCapturedPhoto(dataUrl);
+    console.log("🎨 Drawing video frame to canvas...");
     
-    // Convert canvas to blob/file for upload
+    // Convert canvas to blob, then to File
     canvas.toBlob((blob) => {
-      if (blob) {
-        const file = new File([blob], `selfie-${Date.now()}.png`, {
-          type: "image/png"
-        });
-        setCapturedFile(file);
+      console.log("📦 Canvas.toBlob callback triggered");
+      
+      if (!blob) {
+        console.error("❌ Failed to create blob from canvas");
+        return;
       }
-    }, "image/png", 0.8);
-    
-    setCaptureState("photo-taken");
-    
-    // Stop camera after capture
-    stopCamera();
+      
+      console.log("✅ Blob created successfully:", {
+        size: blob.size,
+        type: blob.type
+      });
+      
+      // Create a File object from the blob
+      const file = new File([blob], `selfie-${Date.now()}.png`, {
+        type: 'image/png',
+        lastModified: Date.now(),
+      });
+      
+      // Create data URL for preview
+      const dataUrl = canvas.toDataURL("image/png", 0.8);
+      
+      console.log("📸 Photo captured successfully:", {
+        fileSize: file.size,
+        fileName: file.name,
+        dimensions: `${canvas.width}x${canvas.height}`,
+        dataUrlLength: dataUrl.length
+      });
+      
+      console.log("🔄 Setting capture state and data...");
+      
+      // Set the captured data
+      setCapturedFile(file);
+      setCapturedPhoto(dataUrl);
+      setCaptureState("photo-taken");
+      setCaptureMode("camera");
+      
+      console.log("✅ State updated, stopping camera stream (preserving photo-taken state)...");
+      
+      // Stop the camera stream but preserve the photo-taken state
+      stopCamera(false);
+    }, 'image/png', 0.8);
   }, [stopCamera]);
 
   // Handle file upload
@@ -523,7 +575,7 @@ export function SelfieCapture() {
                   Capture Photo
                 </Button>
               )}
-              <Button variant="outline" onClick={stopCamera}>
+              <Button variant="outline" onClick={() => stopCamera()}>
                 Cancel
               </Button>
             </div>
