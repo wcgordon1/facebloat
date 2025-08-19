@@ -1,0 +1,132 @@
+---
+description: Complete tech stack overview and implementation patterns for Facebloat
+globs: ["**/*.tsx", "**/*.ts", "**/convex/**"]
+alwaysApply: true
+---
+
+# Facebloat Tech Stack
+
+## 🚀 Core Framework
+**TanStack Router v7** - Modern full-stack React framework with SSR
+- File-based routing with type safety
+- Server-side rendering and hydration
+- Built-in data loading and mutations
+- Hot Module Replacement (HMR) for fast development
+
+## 🗄️ Backend & Database
+**🧩 Convex** - Complete, reactive, typesafe backend
+- Real-time database with live queries
+- Built-in authentication system (@convex-dev/auth)
+- File storage for profile pictures and assets
+- Serverless functions with automatic scaling
+- TypeScript-first with generated API types
+
+## 💳 Payments & Subscriptions
+**🛍️ Stripe** - Subscription management and billing
+- Test and production payment processing
+- Customer portal for subscription management
+- Webhook handling for subscription events
+- Multiple subscription tiers (Free, Pro)
+
+## 🔐 Authentication
+**🔑 Multi-provider Authentication**
+- **Email OTP** via Resend (passwordless authentication)
+- **GitHub OAuth** for social login
+- **Clerk integration** available for advanced user management
+- JWT-based session management with automatic refresh
+
+## 🎨 Styling & UI
+**🎨 TailwindCSS** - Utility-first CSS framework
+- **📐 shadcn/ui** - Composable React components built on Radix UI
+- **🌙 Dark/Light Theme** - Automatic theme switching with system preference
+- **📱 Responsive Design** - Mobile-first approach with breakpoint utilities
+- **🎯 Modern Design System** - Consistent spacing, colors, and typography
+
+## 📧 Email System
+**📧 Resend** - Email for developers
+- **💌 React Email** - Customizable email templates with React components
+- Transactional emails for authentication codes
+- Domain verification for custom sender addresses
+- Email analytics and delivery tracking
+
+## 📋 Forms & Validation
+**📋 TanStack Form** - Type-safe form validation
+- Web standards-based form handling
+- Zod schema validation integration
+- Real-time field validation
+- Optimistic updates with error handling
+
+## 🗺️ Routing & Navigation
+**🗺️ TanStack Router** - Simple route definitions
+- File-based routing with automatic code splitting
+- Nested layouts and protected routes
+- Type-safe navigation and params
+- Route-level data loading and error boundaries
+
+## 📥 File Management
+**📥 File Uploads** - Profile picture uploads with Convex
+- Image optimization and resizing
+- Secure file storage with CDN delivery
+- Progress tracking and error handling
+- Multiple file format support
+
+## 🌐 Internationalization
+**🌐 i18next** - Internationalization framework
+- Multi-language support (English, Spanish)
+- Automatic language detection
+- Namespace-based translation organization
+- Runtime language switching
+
+## 🧰 Development Tools
+**🧰 Enhanced Development Experience**
+- **⚡ Vite** - Next-generation frontend tooling with instant HMR
+- **TanStack Query Devtools** - Query debugging and cache inspection
+- **TanStack Router Devtools** - Route tree visualization and navigation debugging
+- **TypeScript** - Full type safety across frontend and backend
+- **ESLint + Prettier** - Code formatting and linting
+
+## 🏕 Application Architecture
+**🏕 Custom Pages & Layouts**
+- **Landing Page** - Marketing site with feature highlights
+- **Authentication Flow** - Login/signup with email verification
+- **Onboarding** - Username setup and preference selection
+- **Dashboard** - User management and analytics
+- **Settings** - Profile, billing, and account management
+- **Admin Panel** - User administration and subscription management
+
+## Development Patterns
+
+### File Organization
+```
+src/
+├── routes/           # TanStack Router file-based routes
+├── ui/              # Reusable UI components (shadcn/ui)
+├── utils/           # Utility functions and helpers
+└── assets/          # Static assets and images
+
+convex/
+├── schema.ts        # Database schema definitions
+├── auth.ts          # Authentication configuration
+├── stripe.ts        # Payment processing functions
+├── email/           # Email templates and sending logic
+└── http.ts          # HTTP endpoints and webhooks
+```
+
+### Key Conventions
+- Use TypeScript for all code with strict type checking
+- Follow shadcn/ui component patterns for consistent styling
+- Implement error boundaries at route levels
+- Use Convex queries with TanStack Query for data fetching
+- Validate all forms with Zod schemas
+- Handle loading and error states consistently across components
+
+### Environment Configuration
+Required environment variables:
+- `VITE_CONVEX_URL` - Convex deployment URL
+- `AUTH_RESEND_KEY` - Resend API key for emails
+- `AUTH_EMAIL` - Sender email address
+- `STRIPE_SECRET_KEY` - Stripe secret key for payments
+- `SITE_URL` - Application base URL for redirects
+- `JWT_PRIVATE_KEY` - JWT signing key (auto-generated)
+
+This stack provides a modern, scalable foundation for building full-stack React applications with real-time capabilities, secure authentication, and integrated payment processing.

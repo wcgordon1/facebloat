@@ -9,8 +9,8 @@ export const Route = createFileRoute("/_app/_auth/dashboard/_layout/")({
   component: Dashboard,
   beforeLoad: () => ({
     title: `${siteConfig.siteTitle} - Dashboard`,
-    headerTitle: "Dashboard",
-    headerDescription: "Manage your Apps and view your usage.",
+    headerTitle: "FaceBloat Dashboard",
+    headerDescription: "Manage your FaceBloat account.",
   }),
 });
 

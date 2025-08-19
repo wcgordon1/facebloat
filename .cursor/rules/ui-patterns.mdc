@@ -1,0 +1,289 @@
+---
+description: UI component patterns and shadcn/ui usage guidelines
+globs: ["**/ui/**", "**/routes/**/*.tsx", "**/components/**"]
+alwaysApply: false
+---
+
+# UI Component Patterns
+
+## shadcn/ui Integration
+
+### Component Structure
+- All UI components in `src/ui/` directory
+- Export components as named exports
+- Use `cn()` utility for conditional classes
+- Follow Radix UI accessibility patterns
+
+```typescript
+import * as React from "react";
+import { cn } from "@/utils/misc";
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "outline" | "ghost";
+  size?: "default" | "sm" | "lg";
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "default", size = "default", ...props }, ref) => {
+    return (
+      <button
+        className={cn(buttonVariants({ variant, size }), className)}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = "Button";
+
+export { Button };
+```
+
+## Form Patterns
+
+### TanStack Form Integration
+- Use `useForm` hook for form state management
+- Integrate with Zod validators for type safety
+- Handle loading states during submission
+- Display validation errors appropriately
+
+```typescript
+import { useForm } from "@tanstack/react-form";
+import { zodValidator } from "@tanstack/zod-form-adapter";
+import { z } from "zod";
+
+const schema = z.object({
+  email: z.string().email("Invalid email address"),
+  username: z.string().min(3, "Username too short"),
+});
+
+function SignupForm() {
+  const form = useForm({
+    validatorAdapter: zodValidator(),
+    defaultValues: { email: "", username: "" },
+    onSubmit: async ({ value }) => {
+      // Handle submission
+    },
+  });
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }}>
+      <form.Field
+        name="email"
+        validators={{ onSubmit: schema.shape.email }}
+        children={(field) => (
+          <Input
+            value={field.state.value}
+            onChange={(e) => field.handleChange(e.target.value)}
+            className={field.state.meta?.errors.length > 0 ? "border-destructive" : ""}
+          />
+        )}
+      />
+    </form>
+  );
+}
+```
+
+## Layout Patterns
+
+### Page Layout Structure
+```typescript
+function PageLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+```
+
+### Dashboard Layout
+```typescript
+function DashboardLayout() {
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar className="w-64 border-r" />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header className="border-b" />
+        <main className="flex-1 overflow-auto p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+
+## Loading States
+
+### Suspense Boundaries
+- Use React Suspense for loading UI
+- Implement error boundaries for error handling
+- Show skeleton loaders for better UX
+
+```typescript
+function DataComponent() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <DataRenderer />
+    </Suspense>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+      ))}
+    </div>
+  );
+}
+```
+
+## Theme System
+
+### Theme Switching
+```typescript
+function ThemeToggle() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+    >
+      {theme === "light" ? <Moon /> : <Sun />}
+    </Button>
+  );
+}
+```
+
+### CSS Variables
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+}
+```
+
+## Responsive Design
+
+### Mobile-First Approach
+```typescript
+function ResponsiveGrid() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {items.map((item) => (
+        <Card key={item.id} className="p-4">
+          <h3 className="text-lg font-semibold">{item.title}</h3>
+          <p className="text-sm text-muted-foreground">{item.description}</p>
+        </Card>
+      ))}
+    </div>
+  );
+}
+```
+
+## Animation Patterns
+
+### Framer Motion Integration
+```typescript
+import { motion } from "framer-motion";
+
+function AnimatedCard({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+      className="bg-card border rounded-lg p-6"
+    >
+      {children}
+    </motion.div>
+  );
+}
+```
+
+## Accessibility Guidelines
+
+### Keyboard Navigation
+- Use proper ARIA labels and roles
+- Ensure all interactive elements are keyboard accessible
+- Implement focus management for modals and dropdowns
+- Use semantic HTML elements
+
+### Screen Reader Support
+```typescript
+function AccessibleButton({ children, ...props }: ButtonProps) {
+  return (
+    <button
+      {...props}
+      aria-label={props["aria-label"] || children}
+      role="button"
+      tabIndex={0}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+## Error Handling
+
+### Error Boundaries
+```typescript
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8">
+          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+          <Button onClick={() => window.location.reload()}>
+            Reload page
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+## Component Best Practices
+- Keep components small and focused on single responsibility
+- Use TypeScript interfaces for prop types
+- Implement proper error boundaries and loading states
+- Follow naming conventions: PascalCase for components, camelCase for functions
+- Use composition over inheritance
+- Memoize expensive calculations with useMemo/useCallback when needed

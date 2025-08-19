@@ -1,0 +1,67 @@
+---
+description: TanStack Start integration guide and patterns for Convex
+globs: ["**/routes/**", "**/router.tsx", "**/routeTree.gen.ts"]
+alwaysApply: false
+---
+
+# TanStack Start + Convex Integration
+
+## Framework Overview
+TanStack Start is a new React framework currently in **beta**. This project uses TanStack Router v7 with SSR capabilities and integrates with Convex for backend functionality.
+
+## Project Structure
+```
+src/
+├── routes/
+│   ├── __root.tsx          # Root route with QueryClient context
+│   ├── index.tsx           # Home page
+│   └── _app/               # Protected app routes
+├── router.tsx              # Router configuration with Convex
+├── routeTree.gen.ts        # Generated route tree
+└── main.tsx                # App entry point
+```
+
+## Key Patterns
+
+### Router Configuration
+- Use `createRootRouteWithContext<{ queryClient: QueryClient }>()` for type-safe context
+- Integrate ConvexProvider and ConvexQueryClient in router setup
+- Enable SSR with proper hydration patterns
+
+### Data Fetching
+- Use `convexQuery()` with `useSuspenseQuery()` for server-side rendering
+- Leverage TanStack Query for caching and synchronization
+- Queries work on both server and client seamlessly
+
+### Route Organization
+- Protected routes under `_app/` with authentication middleware
+- Use layout routes (`_layout.tsx`) for shared UI components
+- Implement route-based code splitting
+
+## Required Dependencies
+```bash
+npm install convex @convex-dev/react-query @tanstack/react-router-with-query @tanstack/react-query
+```
+
+## Example Query Usage
+```typescript
+import { convexQuery } from "@convex-dev/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { api } from "../../convex/_generated/api";
+
+function Component() {
+  const { data } = useSuspenseQuery(convexQuery(api.tasks.get, {}));
+  return <div>{data.map(item => <div key={item._id}>{item.text}</div>)}</div>;
+}
+```
+
+## Best Practices
+- Always use `useSuspenseQuery` for SSR compatibility
+- Wrap route components with error boundaries
+- Leverage route-level data preloading with `loader` functions
+- Use TypeScript for full type safety across routes and queries
+
+## Development Commands
+- `npm run dev` - Start development server with HMR
+- `npx convex dev` - Run Convex backend in development mode
+- `npm run build` - Build for production with SSR

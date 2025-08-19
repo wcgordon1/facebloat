@@ -1,0 +1,194 @@
+---
+description: Convex backend development patterns and best practices
+globs: ["**/convex/**"]
+alwaysApply: false
+---
+
+# Convex Backend Patterns
+
+## Function Types
+
+### Queries
+- Read-only operations that return data
+- Automatically reactive - UI updates when data changes
+- Can be called from client or other functions
+- Should be fast and lightweight
+
+```typescript
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx): Promise<User | undefined> => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return;
+    return await ctx.db.get(userId);
+  },
+});
+```
+
+### Mutations
+- Write operations that modify database state
+- Can schedule other functions or actions
+- Should validate input with Zod schemas
+- Return updated data when needed
+
+```typescript
+export const updateUsername = mutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    await ctx.db.patch(userId, { username: args.username });
+  },
+});
+```
+
+### Actions
+- Can call external APIs (Stripe, Resend, etc.)
+- Can call other Convex functions via ctx.runQuery/ctx.runMutation
+- Used for integrations and side effects
+- Cannot directly access database (use internal functions)
+
+```typescript
+export const createStripeCustomer = action({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.runQuery(internal.app.getUser, { userId: args.userId });
+    const customer = await stripe.customers.create({ email: user.email });
+    await ctx.runMutation(internal.stripe.updateCustomerId, {
+      userId: args.userId,
+      customerId: customer.id,
+    });
+  },
+});
+```
+
+## Authentication Patterns
+
+### Using @convex-dev/auth
+- Always check authentication in protected functions
+- Use `auth.getUserId(ctx)` to get current user ID
+- Return early if not authenticated
+- Prefix internal functions with PREAUTH/UNAUTH for clarity
+
+```typescript
+export const getProtectedData = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    // Continue with authenticated logic
+  },
+});
+```
+
+## Database Patterns
+
+### Schema Definition
+- Use strict TypeScript types with Convex validators
+- Define indexes for efficient queries
+- Use optional fields where appropriate
+
+```typescript
+export default defineSchema({
+  users: defineTable({
+    email: v.string(),
+    username: v.optional(v.string()),
+    customerId: v.optional(v.string()),
+  })
+    .index("email", ["email"])
+    .index("customerId", ["customerId"]),
+});
+```
+
+### Query Patterns
+- Use indexes for efficient filtering
+- Collect results with `.collect()` for arrays
+- Use `.unique()` for single results
+- Handle missing documents gracefully
+
+```typescript
+// Get user by email
+const user = await ctx.db
+  .query("users")
+  .withIndex("email", (q) => q.eq("email", email))
+  .unique();
+
+// Get all active subscriptions
+const subscriptions = await ctx.db
+  .query("subscriptions")
+  .filter((q) => q.eq(q.field("status"), "active"))
+  .collect();
+```
+
+## File Organization
+
+### Internal Functions
+- Prefix with `PREAUTH_` when user ID is passed in
+- Prefix with `UNAUTH_` when no authentication required
+- Use `internal.` exports for functions called by actions
+- Keep business logic in internal functions
+
+### HTTP Endpoints
+- Handle webhooks in `http.ts`
+- Validate webhook signatures
+- Use proper HTTP status codes
+- Log errors appropriately
+
+```typescript
+const http = httpRouter();
+
+http.route({
+  path: "/stripe/webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const signature = request.headers.get("stripe-signature");
+    // Validate and process webhook
+  }),
+});
+```
+
+## Error Handling
+
+### Custom Errors
+- Define error constants in separate file
+- Use descriptive error messages
+- Include context in error logs
+
+```typescript
+// errors.ts
+export const ERRORS = {
+  USER_NOT_FOUND: "User not found",
+  INVALID_PERMISSION: "Invalid permission",
+  STRIPE_ERROR: "Payment processing failed",
+} as const;
+
+// Usage
+if (!user) {
+  throw new Error(ERRORS.USER_NOT_FOUND);
+}
+```
+
+## Environment Variables
+- Define all env vars in `env.ts`
+- Use type-safe environment variable access
+- Validate required variables at startup
+
+```typescript
+// env.ts
+export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+export const AUTH_RESEND_KEY = process.env.AUTH_RESEND_KEY;
+
+// Validation
+if (!STRIPE_SECRET_KEY) {
+  throw new Error("Missing STRIPE_SECRET_KEY environment variable");
+}
+```
+
+## Performance Best Practices
+- Use `.first()` instead of `.collect()[0]` when possible
+- Batch related queries with `Promise.all()`
+- Avoid N+1 queries by fetching related data efficiently
+- Use pagination for large datasets
+- Cache expensive computations in the database when appropriate
