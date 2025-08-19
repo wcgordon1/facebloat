@@ -22,7 +22,10 @@ const TanStackRouterDevtools =
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  component: () => {
+  component: Component,
+});
+
+function Component() {
     const router = useRouter();
     const matchWithTitle = [...router.state.matches]
       .reverse()
@@ -40,5 +43,4 @@ export const Route = createRootRouteWithContext<{
         </Suspense>
       </>
     );
-  },
-});
+}
