@@ -21,18 +21,17 @@ export function VerificationCodeEmail({
         <Head />
         <Container className="container px-20 font-sans">
           <Heading className="text-xl font-bold mb-4">
-            {/* TODO: Update with your app name */}
-            Sign in to Convex SaaS
+            Welcome to Facebloat!
           </Heading>
           <Text className="text-sm">
-            Please enter the following code on the sign in page.
+            Your verification code is ready. Enter this code to continue signing in.
           </Text>
           <Section className="text-center">
             <Text className="font-semibold">Verification code</Text>
             <Text className="font-bold text-4xl">{code}</Text>
             <Text>
               (This code is valid for{" "}
-              {Math.floor((+expires - Date.now()) / (60 * 60 * 1000))} hours)
+              {Math.floor((+expires - Date.now()) / (60 * 1000))} minutes)
             </Text>
           </Section>
         </Container>

@@ -1,6 +1,6 @@
 import { asyncMap } from "convex-helpers";
 import { ERRORS } from "~/errors";
-import { internalAction, internalMutation } from "@cvx/_generated/server";
+import { internalAction, internalMutation, internalQuery } from "@cvx/_generated/server";
 import schema, {
   CURRENCIES,
   Currency,
@@ -45,6 +45,13 @@ const seedProducts = [
   },
 ];
 
+export const getExistingPlans = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("plans").collect();
+  },
+});
+
 export const insertSeedPlan = internalMutation({
   args: schema.tables.plans.validator,
   handler: async (ctx, args) => {
@@ -60,15 +67,18 @@ export const insertSeedPlan = internalMutation({
 
 export default internalAction(async (ctx) => {
   /**
-   * Stripe Products.
+   * Check if plans already exist in Convex database.
    */
-  const products = await stripe.products.list({
-    limit: 1,
-  });
-  if (products?.data?.length) {
-    console.info("🏃‍♂️ Skipping Stripe products creation and seeding.");
+  const existingPlans = await ctx.runQuery(internal.init.getExistingPlans);
+  if (existingPlans.length > 0) {
+    console.info("🏃‍♂️ Skipping initialization - plans already exist in database.");
     return;
   }
+
+  /**
+   * Stripe Products - proceeding with seeding regardless of existing products.
+   */
+  console.info("🌱 Seeding subscription plans...");
 
   const seededProducts = await asyncMap(seedProducts, async (product) => {
     // Format prices to match Stripe's API.

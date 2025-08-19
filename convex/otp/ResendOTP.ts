@@ -22,8 +22,7 @@ export const ResendOTP = Email({
       // TODO: Update with your app name and email address
       from: AUTH_EMAIL ?? "Convex SaaS <onboarding@resend.dev>",
       to: [email],
-      // TODO: Update with your app name
-      subject: `Sign in to Convex SaaS`,
+      subject: `Your Facebloat verification code`,
       react: VerificationCodeEmail({ code: token, expires }),
     });
 

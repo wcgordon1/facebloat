@@ -85,18 +85,17 @@ export default function BillingSettings() {
     <div className="flex h-full w-full flex-col gap-6">
       <div className="flex w-full flex-col gap-2 p-6 py-2">
         <h2 className="text-xl font-medium text-primary">
-          This is a demo app.
+          FaceBloat Billing
         </h2>
         <p className="text-sm font-normal text-primary/60">
-          Convex SaaS is a demo app that uses Stripe test environment. You can
-          find a list of test card numbers on the{" "}
+          FaceBloat Billing is securely handled by Stripe. We don't store or have access to your payment information.{" "}
           <a
-            href="https://stripe.com/docs/testing#cards"
+            href="https://stripe.com/legal/ssa"
             target="_blank"
             rel="noreferrer"
             className="font-medium text-primary/80 underline"
           >
-            Stripe docs
+            Stripe Terms of Service
           </a>
           .
         </p>
