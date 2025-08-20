@@ -15,6 +15,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.7",
+    "@ai-sdk/openai": "^2.0.17",
+    "@ai-sdk/react": "^2.0.19",
     "@auth/core": "^0.34.1",
     "@convex-dev/auth": "^0.0.43",
     "@convex-dev/react-query": "^0.0.0-alpha.3",
@@ -29,6 +32,7 @@
     "@tanstack/react-router": "^1.45.11",
     "@tanstack/zod-form-adapter": "^0.26.4",
     "@xixixao/uploadstuff": "^0.0.5",
+    "ai": "^5.0.19",
     "class-variance-authority": "^0.7.0",
     "convex": "^1.13.2",
     "convex-helpers": "^0.1.50",
@@ -41,12 +45,14 @@
     "oslo": "^1.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.8",
     "react-helmet-async": "^2.0.5",
     "react-i18next": "^15.0.0",
     "resend": "^3.2.0",
     "stripe": "^16.6.0",
     "tailwind-merge": "^2.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

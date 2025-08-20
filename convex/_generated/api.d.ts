@@ -16,6 +16,7 @@ import type {
 } from "convex/server";
 import type * as app from "../app.js";
 import type * as auth from "../auth.js";
+import type * as chat from "../chat.js";
 import type * as email_index from "../email/index.js";
 import type * as email_templates_subscriptionEmail from "../email/templates/subscriptionEmail.js";
 import type * as env from "../env.js";
@@ -37,6 +38,7 @@ import type * as stripe from "../stripe.js";
 declare const fullApi: ApiFromModules<{
   app: typeof app;
   auth: typeof auth;
+  chat: typeof chat;
   "email/index": typeof email_index;
   "email/templates/subscriptionEmail": typeof email_templates_subscriptionEmail;
   env: typeof env;

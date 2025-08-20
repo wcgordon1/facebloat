@@ -13,6 +13,8 @@ import {
 } from "@cvx/email/templates/subscriptionEmail";
 import Stripe from "stripe";
 import { Doc } from "@cvx/_generated/dataModel";
+// Removed AI SDK imports - using direct Google API approach
+
 
 const http = httpRouter();
 
@@ -237,6 +239,8 @@ http.route({
     return new Response(null);
   }),
 });
+
+
 
 auth.addHttpRoutes(http);
 

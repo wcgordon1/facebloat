@@ -6,6 +6,8 @@ import { Loader2, Star } from "lucide-react";
 import { Button } from "@/ui/button";
 import siteConfig from "~/site.config";
 import { ThemeSwitcherHome } from "@/ui/theme-switcher";
+import { BMI } from "@/ui/bmi";
+import { SimpleChat } from "@/ui/simple-chat";
 import ShadowPNG from "/images/shadow.png";
 import { useConvexAuth } from "@convex-dev/react-query";
 import { Route as AuthLoginRoute } from "@/routes/_app/login/_layout.index";
@@ -126,9 +128,9 @@ function Index() {
             {siteConfig.siteTitle}
           </Button>
           <h1 className="text-center text-6xl font-bold leading-tight text-primary md:text-7xl lg:leading-tight">
-            Production Ready
+            Proven strategies
             <br />
-            SaaS Stack for Convex
+            to reduce Face Bloat
           </h1>
           <p className="max-w-screen-md text-center text-lg !leading-normal text-muted-foreground md:text-xl">
             Launch in hours with a modern{" "}
@@ -501,6 +503,37 @@ function Index() {
             </a>
           </div>
         </div>
+        
+        {/* BMI Calculator Section */}
+        <div className="flex w-full flex-col items-center justify-center gap-8 py-16">
+          <div className="text-center space-y-4">
+            <h2 className="text-center text-4xl font-bold leading-tight text-primary md:text-5xl">
+              Try Our BMI Calculator
+            </h2>
+            <p className="max-w-screen-md text-center text-lg !leading-normal text-muted-foreground">
+              A quick and easy way to calculate your Body Mass Index using our 
+              <span className="font-medium text-primary"> interactive calculator</span>
+            </p>
+          </div>
+          <BMI />
+        </div>
+        
+        {/* AI Chat Section */}
+        <div className="flex w-full flex-col items-center justify-center gap-8 py-16">
+          <div className="text-center space-y-4">
+            <h2 className="text-center text-4xl font-bold leading-tight text-primary md:text-5xl">
+              AI Health Assistant
+            </h2>
+            <p className="max-w-screen-md text-center text-lg !leading-normal text-muted-foreground">
+              Chat with our AI assistant powered by
+              <span className="font-medium text-primary"> Google Gemini</span> for health and fitness advice
+            </p>
+          </div>
+          <div className="w-full max-w-4xl">
+            <SimpleChat />
+          </div>
+        </div>
+        
         <div className="relative z-10 flex flex-col border border-border backdrop-blur-sm lg:flex-row">
           <div className="flex w-full flex-col items-start justify-center gap-6 border-r border-primary/10 p-10 lg:p-12">
             <p className="h-14 text-lg text-primary/60">
