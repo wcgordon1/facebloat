@@ -561,8 +561,8 @@ export function SelfieCapture() {
               {/* Instructions (when camera is active) */}
               {captureState === "camera-active" && (
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                    Position your face in the oval
+                  <div className="bg-black/70 text-white px-3 py-1 rounded-full text-sm text-center">
+                    Center face
                   </div>
                 </div>
               )}
