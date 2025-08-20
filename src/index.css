@@ -106,3 +106,68 @@ img {
   background-image: linear-gradient(90deg, var(--muted-grid) 1px, transparent 0),
     linear-gradient(180deg, var(--muted-grid) 1px, transparent 0);
 }
+
+/*
+* Chat Markdown Styles
+*/
+.markdown-wrapper {
+  @apply text-sm leading-relaxed;
+}
+
+.markdown-content {
+  @apply text-inherit;
+}
+
+/* Enhanced code block styling for chat */
+.markdown-content pre {
+  @apply bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700;
+}
+
+.markdown-content code {
+  @apply text-slate-800 dark:text-slate-200;
+}
+
+.markdown-content blockquote {
+  @apply border-l-primary/50 bg-primary/5;
+}
+
+/* Table styling for chat context */
+.markdown-content table {
+  @apply text-xs;
+}
+
+.markdown-content th {
+  @apply bg-primary/10 font-medium;
+}
+
+.markdown-content td {
+  @apply text-xs;
+}
+
+/* Links in chat */
+.markdown-content a {
+  @apply text-primary underline-offset-2 hover:underline;
+}
+
+/* List styling in chat */
+.markdown-content ul,
+.markdown-content ol {
+  @apply pl-4;
+}
+
+.markdown-content li {
+  @apply text-sm;
+}
+
+/* Headings in chat - smaller and less prominent */
+.markdown-content h1 {
+  @apply text-base font-semibold mb-1 mt-2 first:mt-0;
+}
+
+.markdown-content h2 {
+  @apply text-sm font-medium mb-1 mt-2 first:mt-0;
+}
+
+.markdown-content h3 {
+  @apply text-sm font-medium mb-1 mt-1 first:mt-0;
+}

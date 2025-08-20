@@ -3,6 +3,7 @@ import { useAction } from 'convex/react';
 import { Button } from '@/ui/button';
 import { cn } from '@/utils/misc';
 import { api } from '../../convex/_generated/api';
+import { MemoizedMarkdown } from '@/ui/memoized-markdown';
 
 interface Message {
   id: string;
@@ -15,7 +16,28 @@ export const SimpleChat = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Hello! I\'m your AI health assistant. I can help you with fitness advice, nutrition guidance, and general health questions. How can I assist you today?'
+      content: `# Welcome to your AI Health Assistant! 🏃‍♀️
+
+I can help you with **fitness advice**, *nutrition guidance*, and general health questions. Here are some things I can help with:
+
+## Fitness & Exercise
+- Custom workout routines
+- Exercise form tips
+- Training program recommendations
+
+## Nutrition
+- Meal planning suggestions
+- Calorie calculations
+- Dietary advice
+
+## Health Tracking
+- \`BMI calculations\`
+- Progress monitoring tips
+- Health goal setting
+
+> **Pro tip**: Ask specific questions for the best advice!
+
+How can I assist you today?`
     }
   ]);
   const [input, setInput] = useState('');
@@ -178,13 +200,21 @@ For now, I can help you with general health and fitness advice! Would you like s
           >
             <div
               className={cn(
-                "max-w-[80%] rounded-lg p-4 whitespace-pre-wrap shadow-sm transition-all duration-200 hover:shadow-md",
+                "max-w-[80%] rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md",
                 message.role === 'user'
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground whitespace-pre-wrap"
                   : "bg-muted text-muted-foreground border"
               )}
             >
-              {message.content}
+              {message.role === 'assistant' ? (
+                <MemoizedMarkdown 
+                  content={message.content} 
+                  id={message.id}
+                  className="text-muted-foreground"
+                />
+              ) : (
+                message.content
+              )}
             </div>
           </div>
         ))}

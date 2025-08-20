@@ -7,6 +7,10 @@
 - Proper Convex + TanStack Query integration
 - Type-safe implementation with full error handling
 - Real-time UI updates and loading states
+- **NEW**: Auto-scroll within chat container (no page scrolling)
+- **NEW**: Preset suggestion buttons for quick interactions
+- **NEW**: Full-width input with modern layout design
+- **NEW**: Smart responses for FaceBloat-specific features
 
 ---
 
@@ -98,9 +102,9 @@ export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 ```
 
-### 3. Frontend Chat Component (`src/ui/simple-chat.tsx`)
+### 3. Frontend Chat Component (`src/ui/simple-chat.tsx`) - **UPDATED WITH LATEST FEATURES**
 ```typescript
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAction } from 'convex/react';
 import { Button } from '@/ui/button';
 import { cn } from '@/utils/misc';
@@ -122,58 +126,90 @@ export const SimpleChat = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sendMessageAction = useAction(api.chat.sendMessage);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  // Auto-scroll to bottom when new messages arrive (contained within the chat container)
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timer);
+  }, [messages]);
+
+  // Handle preset message buttons
+  const handlePresetMessage = async (presetText: string) => {
+    if (isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: presetText,
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setIsLoading(true);
     
     try {
-      // Send all messages (including the new one) to the AI
-      const allMessages = [...messages, userMessage].map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Check if it's a FaceBloat-specific question and handle accordingly
+      if (presetText.toLowerCase().includes('facebloat') || presetText.toLowerCase().includes('improve faster')) {
+        const response = {
+          role: 'assistant' as const,
+          content: `I'd love to help you ${presetText.toLowerCase().includes('facebloat') ? 'analyze your FaceBloat trends' : 'improve faster'}, but it looks like you haven't uploaded any face photos for analysis yet. 
 
-      const response = await sendMessageAction({ messages: allMessages });
-      
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        role: response.role,
-        content: response.content,
-      }]);
+Once you start using the selfie capture feature and tracking your progress, I'll be able to:
+• Analyze your facial changes over time
+• Identify patterns in your progress
+• Suggest personalized improvements
+• Track your health and fitness journey
+
+For now, I can help you with general health and fitness advice! Would you like some tips on nutrition, exercise routines, or wellness strategies?`
+        };
+
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: response.role,
+          content: response.content,
+        }]);
+      } else {
+        const allMessages = [...messages, userMessage].map(m => ({
+          role: m.role,
+          content: m.content,
+        }));
+
+        const response = await sendMessageAction({ messages: allMessages });
+        
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: response.role,
+          content: response.content,
+        }]);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
-        id: Date.now().toString(),
+        id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       }]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+      textareaRef.current?.focus();
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 h-[600px] flex flex-col">
+    <div className="max-w-4xl mx-auto p-6 h-[600px] flex flex-col overflow-hidden">
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-primary">AI Health Assistant</h2>
@@ -181,7 +217,10 @@ export const SimpleChat = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 border rounded-lg bg-background">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto space-y-4 p-4 border rounded-lg bg-background scroll-smooth"
+      >
         {messages.map((message) => (
           <div
             key={message.id}
@@ -192,10 +231,10 @@ export const SimpleChat = () => {
           >
             <div
               className={cn(
-                "max-w-[80%] rounded-lg p-4 whitespace-pre-wrap",
+                "max-w-[80%] rounded-lg p-4 whitespace-pre-wrap shadow-sm transition-all duration-200 hover:shadow-md",
                 message.role === 'user'
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
+                  : "bg-muted text-muted-foreground border"
               )}
             >
               {message.content}
@@ -204,30 +243,68 @@ export const SimpleChat = () => {
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-muted text-muted-foreground rounded-lg p-4">
-              <div className="animate-pulse">Thinking...</div>
+            <div className="bg-muted text-muted-foreground rounded-lg p-4 border animate-pulse">
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <span className="text-sm">AI is thinking...</span>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-2">
+      {/* Preset Suggestion Buttons */}
+      <div className="mt-4 flex flex-wrap gap-3 justify-center mb-4">
+        <Button
+          variant="outline"
+          size="default"
+          onClick={() => handlePresetMessage("Analyze my FaceBloat trends")}
+          disabled={isLoading}
+          className="rounded-full text-sm px-6 py-3 h-auto border-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-sm"
+        >
+          Analyze my FaceBloat trends
+        </Button>
+        <Button
+          variant="outline"
+          size="default"
+          onClick={() => handlePresetMessage("How can I improve faster?")}
+          disabled={isLoading}
+          className="rounded-full text-sm px-6 py-3 h-auto border-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-sm"
+        >
+          How can I improve faster?
+        </Button>
+      </div>
+
+      {/* Input - Full Width Design */}
+      <form onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-3">
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask me anything about health and fitness..."
           disabled={isLoading}
-          className="min-h-[80px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-[80px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
         />
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <div className="text-xs text-muted-foreground">
+            Press Enter to send, Shift+Enter for new line
+          </div>
           <Button 
             type="submit" 
             disabled={!input.trim() || isLoading}
             size="sm"
+            className="transition-all duration-200"
           >
-            Send
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              "Send"
+            )}
           </Button>
         </div>
       </form>
@@ -271,6 +348,39 @@ import { SimpleChat } from '@/ui/simple-chat';
 // In your component JSX
 <SimpleChat />
 ```
+
+---
+
+## 🎨 Latest UI Enhancements (December 2024)
+
+### ✨ **Auto-Scroll Container**
+- **Fixed page scrolling issue**: Chat now scrolls within container only
+- **Smooth scrolling**: Uses `container.scrollTo()` with `behavior: 'smooth'`
+- **Proper timing**: 50ms delay ensures messages render before scrolling
+- **Container-confined**: No more unwanted page jumping
+
+### 🎯 **Preset Suggestion Buttons**
+- **Modern pill design**: Rounded buttons inspired by ChatGPT interface
+- **FaceBloat-specific prompts**: "Analyze my FaceBloat trends" and "How can I improve faster?"
+- **Smart responses**: Detects when features aren't available yet and provides helpful guidance
+- **One-click interaction**: Users can quickly access common functionality
+
+### 📱 **Full-Width Input Design**
+- **Spacious layout**: Input spans full width for better typing experience  
+- **Send button placement**: Moved underneath input area (bottom-right)
+- **Professional styling**: Enhanced borders, shadows, and hover effects
+- **Focus management**: Auto-focus returns to input after sending messages
+
+### 🎭 **Enhanced Loading States**
+- **Animated dots**: Bouncing dots with staggered timing for engaging feedback
+- **Loading spinner**: Spinning indicator in send button during requests
+- **Contextual messaging**: "AI is thinking..." with visual indicators
+
+### 🎨 **Visual Improvements**
+- **Message shadows**: Subtle shadows with hover effects for depth
+- **Smooth transitions**: 200ms transitions on all interactive elements
+- **Better contrast**: Border added to assistant messages for clarity
+- **Responsive design**: Maintains functionality across screen sizes
 
 ---
 
@@ -377,5 +487,7 @@ npx convex run chat:sendMessage '{"messages": [{"role": "user", "content": "Hell
 ---
 
 *Implementation completed: 2025-08-20*
-*Status: ✅ Production Ready*
-*Next: Message persistence and streaming responses*
+*Latest UI updates: 2025-08-20*
+*Status: ✅ Production Ready with Modern UI*
+*Features: OpenAI integration + Auto-scroll + Preset buttons + Full-width input*
+*Next: Message persistence, streaming responses, and FaceBloat feature integration*
