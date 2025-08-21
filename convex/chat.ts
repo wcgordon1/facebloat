@@ -11,7 +11,7 @@ export const sendMessage = action({
       })
     ),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     if (!OPENAI_API_KEY) {
       throw new Error("OpenAI API key not configured");
     }

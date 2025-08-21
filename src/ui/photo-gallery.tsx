@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { convexQuery } from "@convex-dev/react-query";
-import { ArrowLeft, Calendar, Camera, Upload, Trash2, Download, Eye } from "lucide-react";
+import { ArrowLeft, Calendar, Camera, Upload, Trash2, Download } from "lucide-react";
 import { Button } from "@/ui/button";
 import { ConfirmationDialog } from "@/ui/confirmation-dialog";
 import { useConvexMutation } from "@convex-dev/react-query";

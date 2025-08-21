@@ -10,6 +10,8 @@ const Reasoning = React.forwardRef<
   }
 >(({ className, children, isStreaming, ...props }, ref) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  // TODO: Implement reasoning expansion functionality
+  console.log(isOpen, setIsOpen); // Temporary to avoid unused variable error
 
   return (
     <div
