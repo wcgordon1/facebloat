@@ -1,7 +1,7 @@
 export default {
   providers: [
     {
-      domain: "https://facebloat.com",
+      domain: process.env.SITE_URL,
       applicationID: "convex",
     },
   ],
