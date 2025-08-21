@@ -27,7 +27,7 @@ export const FloatingChatWidget = () => {
           />
           
           {/* Chat Dialog */}
-          <div className="fixed bottom-20 right-6 z-50 w-[400px] h-[700px] bg-background border border-border rounded-lg shadow-2xl overflow-hidden">
+          <div className="fixed bottom-20 left-2 right-2 md:left-auto md:right-6 md:w-[400px] z-50 w-auto h-[700px] max-h-[80vh] bg-background border border-border rounded-lg shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-muted/50">
               <div className="flex items-center gap-2">
