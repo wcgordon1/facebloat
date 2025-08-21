@@ -12,7 +12,7 @@ import {
   sendSubscriptionSuccessEmail,
 } from "@cvx/email/templates/subscriptionEmail";
 import Stripe from "stripe";
-import { Doc } from "@cvx/_generated/dataModel";
+import { User } from "~/types";
 // Removed AI SDK imports - using direct Google API approach
 
 
@@ -47,7 +47,7 @@ async function getStripeEvent(request: Request) {
 
 const handleUpdateSubscription = async (
   ctx: ActionCtx,
-  user: Doc<"users">,
+  user: User,
   subscription: Stripe.Subscription,
 ) => {
   const subscriptionItem = subscription.items.data[0];

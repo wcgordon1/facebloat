@@ -13,8 +13,12 @@ export const getCurrentUser = query({
     if (!userId) {
       return;
     }
-    const [user, subscription] = await Promise.all([
+    const [user, profile, subscription] = await Promise.all([
       ctx.db.get(userId),
+      ctx.db
+        .query("userProfiles")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .unique(),
       ctx.db
         .query("subscriptions")
         .withIndex("userId", (q) => q.eq("userId", userId))
@@ -26,11 +30,15 @@ export const getCurrentUser = query({
     const plan = subscription?.planId
       ? await ctx.db.get(subscription.planId)
       : undefined;
-    const avatarUrl = user.imageId
-      ? await ctx.storage.getUrl(user.imageId)
-      : user.image;
+    const avatarUrl = profile?.imageId
+      ? await ctx.storage.getUrl(profile.imageId)
+      : profile?.image;
     return {
       ...user,
+      username: profile?.username,
+      imageId: profile?.imageId,
+      image: profile?.image,
+      customerId: profile?.customerId,
       avatarUrl: avatarUrl || undefined,
       subscription:
         subscription && plan
@@ -50,9 +58,20 @@ export const updateUsername = mutation({
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return;
+      throw new Error("User not authenticated");
     }
-    await ctx.db.patch(userId, { username: args.username });
+    const existingProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (existingProfile) {
+      await ctx.db.patch(existingProfile._id, { username: args.username });
+    } else {
+      await ctx.db.insert("userProfiles", {
+        userId,
+        username: args.username,
+      });
+    }
   },
 });
 
@@ -70,8 +89,19 @@ export const completeOnboarding = mutation({
     if (!user) {
       return;
     }
-    await ctx.db.patch(userId, { username: args.username });
-    if (user.customerId) {
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (profile) {
+      await ctx.db.patch(profile._id, { username: args.username });
+    } else {
+      await ctx.db.insert("userProfiles", {
+        userId,
+        username: args.username,
+      });
+    }
+    if (profile?.customerId) {
       return;
     }
     await ctx.scheduler.runAfter(
@@ -103,9 +133,16 @@ export const updateUserImage = mutation({
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return;
+      throw new Error("User not authenticated");
     }
-    ctx.db.patch(userId, { imageId: args.imageId });
+    const existingProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!existingProfile) {
+      throw new Error("User profile not found");
+    }
+    await ctx.db.patch(existingProfile._id, { imageId: args.imageId });
   },
 });
 
@@ -114,9 +151,16 @@ export const removeUserImage = mutation({
   handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return;
+      throw new Error("User not authenticated");
     }
-    ctx.db.patch(userId, { imageId: undefined, image: undefined });
+    const existingProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (!existingProfile) {
+      throw new Error("User profile not found");
+    }
+    await ctx.db.patch(existingProfile._id, { imageId: undefined });
   },
 });
 
@@ -147,37 +191,24 @@ export const deleteCurrentUserAccount = mutation({
   handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return;
+      throw new Error("User not authenticated");
     }
-    const user = await ctx.db.get(userId);
-    if (!user) {
-      throw new Error("User not found");
+    const [profile, subscription] = await Promise.all([
+      ctx.db
+        .query("userProfiles")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .unique(),
+      ctx.db
+        .query("subscriptions")
+        .withIndex("userId", (q) => q.eq("userId", userId))
+        .unique(),
+    ]);
+    if (profile) {
+      await ctx.db.delete(profile._id);
     }
-    const subscription = await ctx.db
-      .query("subscriptions")
-      .withIndex("userId", (q) => q.eq("userId", userId))
-      .unique();
-    if (!subscription) {
-      console.error("No subscription found");
-    } else {
+    if (subscription) {
       await ctx.db.delete(subscription._id);
-      await ctx.scheduler.runAfter(
-        0,
-        internal.stripe.cancelCurrentUserSubscriptions,
-      );
     }
     await ctx.db.delete(userId);
-    await asyncMap(["resend-otp", "github"], async (provider) => {
-      const authAccount = await ctx.db
-        .query("authAccounts")
-        .withIndex("userIdAndProvider", (q) =>
-          q.eq("userId", userId).eq("provider", provider),
-        )
-        .unique();
-      if (!authAccount) {
-        return;
-      }
-      await ctx.db.delete(authAccount._id);
-    });
   },
 });

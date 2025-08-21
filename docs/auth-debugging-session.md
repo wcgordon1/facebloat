@@ -267,3 +267,90 @@ npm run dev
 - Provider id must match what Email() config sets. Default is `email`.
 - Issuer should be your Convex deployment origin for stability.
 - SPA must use `VITE_CONVEX_URL` that matches the same deployment used by the backend issuer.
+
+### errors in production browser console:
+[CONVEX A(auth:signIn)] [Request ID: 86e0ae0f70d6cda1] Server Error
+ii @ index-BEmInmOd.js:40
+onResponse @ index-BEmInmOd.js:41
+(anonymous) @ index-BEmInmOd.js:41
+t.onmessage @ index-BEmInmOd.js:41Understand this error
+index-BEmInmOd.js:388 Failed to verify OTP: Error: [CONVEX A(auth:signIn)] [Request ID: 86e0ae0f70d6cda1] Server Error
+  Called by client
+    at yN.action (index-BEmInmOd.js:41:27891)
+    at async index-BEmInmOd.js:57:101749
+    at async Object.onSubmit (index-BEmInmOd.js:388:88731)
+    at async c7.handleSubmit (index-BEmInmOd.js:388:65336)
+
+### errors in dev browser console:
+[CONVEX A(auth:signIn)] [LOG] '[DEV][OTP] Sending verification token' '{"email":"will@starterbuild.com","token":"78411886","expires":"2025-08-21T13:03:42.270Z"}'
+chunk-ODSJX6MF.js?v=acdc1c78:878 WebSocket reconnected
+chunk-ODSJX6MF.js?v=acdc1c78:65 [CONVEX A(auth:signIn)] [Request ID: f6e3c1603e593cc2] Server Error
+Uncaught Error: Could not verify code
+    at signInImpl (../../node_modules/@convex-dev/auth/dist/server/implementation.js:1042:12)
+    at async handler (../../node_modules/@convex-dev/auth/dist/server/implementation.js:451:20)
+
+logToConsole @ chunk-ODSJX6MF.js?v=acdc1c78:65
+onResponse @ chunk-ODSJX6MF.js?v=acdc1c78:377
+(anonymous) @ chunk-ODSJX6MF.js?v=acdc1c78:1587
+ws.onmessage @ chunk-ODSJX6MF.js?v=acdc1c78:891Understand this error
+_layout.index.tsx:202 Failed to verify OTP: Error: [CONVEX A(auth:signIn)] [Request ID: f6e3c1603e593cc2] Server Error
+Uncaught Error: Could not verify code
+    at signInImpl (../../node_modules/@convex-dev/auth/dist/server/implementation.js:1042:12)
+    at async handler (../../node_modules/@convex-dev/auth/dist/server/implementation.js:451:20)
+
+  Called by client
+    at signInImpl (../../node_modules/@convex-dev/auth/dist/server/implementation.js:1042:12)
+    at async handler (../../node_modules/@convex-dev/auth/dist/server/implementation.js:451:20)
+
+  Called by client
+    at BaseConvexClient.action (http://localhost:5173/node_modules/.vite/deps/chunk-ODSJX6MF.js?v=acdc1c78:1856:13)
+    at async http://localhost:5173/node_modules/.vite/deps/@convex-dev_auth_react.js?v=acdc1c78:105:20
+    at async Object.onSubmit (http://localhost:5173/src/routes/_app/login/_layout.index.tsx:324:9)
+    at async FormApi.handleSubmit (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-form.js?v=acdc1c78:475:9)
+onSubmit @ _layout.index.tsx:202
+await in onSubmit
+FormApi.handleSubmit @ @tanstack_react-form.js?v=acdc1c78:475
+await in FormApi.handleSubmit
+onSubmit @ _layout.index.tsx:223
+callCallback2 @ chunk-TRNWTHID.js?v=acdc1c78:3674
+invokeGuardedCallbackDev @ chunk-TRNWTHID.js?v=acdc1c78:3699
+invokeGuardedCallback @ chunk-TRNWTHID.js?v=acdc1c78:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-TRNWTHID.js?v=acdc1c78:3736
+executeDispatch @ chunk-TRNWTHID.js?v=acdc1c78:7014
+processDispatchQueueItemsInOrder @ chunk-TRNWTHID.js?v=acdc1c78:7034
+processDispatchQueue @ chunk-TRNWTHID.js?v=acdc1c78:7043
+dispatchEventsForPlugins @ chunk-TRNWTHID.js?v=acdc1c78:7051
+(anonymous) @ chunk-TRNWTHID.js?v=acdc1c78:7174
+batchedUpdates$1 @ chunk-TRNWTHID.js?v=acdc1c78:18913
+batchedUpdates @ chunk-TRNWTHID.js?v=acdc1c78:3579
+dispatchEventForPluginEventSystem @ chunk-TRNWTHID.js?v=acdc1c78:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-TRNWTHID.js?v=acdc1c78:5478
+dispatchEvent @ chunk-TRNWTHID.js?v=acdc1c78:5472
+dispatchDiscreteEvent @ chunk-TRNWTHID.js?v=acdc1c78:5449Understand this error
+
+---
+
+## Session 2 - ChatGPT-5 (Continued)
+
+### Additional Changes
+- Re-confirmed issuer to Convex deployment: `convex/auth.config.ts` uses `new URL(process.env.CONVEX_URL).origin` for `domain`.
+- Finalized provider id alignment: `convex/otp/ResendOTP.ts` sets `id: "email"`; all client `signIn` calls use `signIn("email", ...)`.
+- Temporarily disabled strict email matching in Email provider (dev) by setting `authorize: undefined` to eliminate identifier mismatch as a cause.
+- Kept client-side hardening: input normalization (email/code), submit locks, and one-time `signOut()` on login mount to clear stale tokens.
+- Added dev-only OTP logging in provider to verify the exact `{ email, token }` issued.
+
+### Environment Alignment (Dev)
+- Backend issuer/domain: `CONVEX_URL=https://lovable-kangaroo-594.convex.cloud`.
+- Frontend target: `VITE_CONVEX_URL=https://lovable-kangaroo-594.convex.cloud` in `.env.local`; restart Vite.
+- CLI linkage: ensure local shell is linked to `lovable-kangaroo-594` (`npx convex link`) or run `CONVEX_DEPLOYMENT=lovable-kangaroo-594 npm run dev`.
+- Clear site data for `http://localhost:5173` after issuer changes.
+
+### Current Observation
+- First submit after entering code may log a transient issuer warning (stale token) followed by websocket reconnect; second submit proceeds to verification but still returns `Invalid verification code` despite exact code match from logs.
+
+### Next Diagnostic Step
+- If failure persists with `authorize: undefined`, add a temporary dev-only mutation to echo what the store sees (identifier/provider) at verification time to confirm lookup key alignment in `authVerificationCodes`.
+
+### References
+- Convex Auth docs: https://labs.convex.dev/auth
+- Convex + TanStack Query setup: https://docs.convex.dev/client/tanstack-query

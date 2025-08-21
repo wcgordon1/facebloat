@@ -48,7 +48,22 @@ export const PREAUTH_updateCustomerId = internalMutation({
     customerId: v.string(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.userId, { customerId: args.customerId });
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .unique();
+    if (profile) {
+      await ctx.db.patch(profile._id, { customerId: args.customerId });
+    } else {
+      await ctx.db.insert("userProfiles", {
+        userId,
+        customerId: args.customerId,
+      });
+    }
   },
 });
 
@@ -61,20 +76,37 @@ export const PREAUTH_getUserById = internalQuery({
   },
 });
 
+export const PREAUTH_getUserProfile = internalQuery({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .unique();
+  },
+});
+
 export const PREAUTH_createStripeCustomer = internalAction({
   args: {
     currency: currencyValidator,
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(internal.stripe.PREAUTH_getUserById, {
-      userId: args.userId,
-    });
-    if (!user || user.customerId)
+    const [user, profile] = await Promise.all([
+      ctx.runQuery(internal.stripe.PREAUTH_getUserById, {
+        userId: args.userId,
+      }),
+      ctx.runQuery(internal.stripe.PREAUTH_getUserProfile, {
+        userId: args.userId,
+      }),
+    ]);
+    if (!user || profile?.customerId)
       throw new Error(ERRORS.STRIPE_CUSTOMER_NOT_CREATED);
 
     const customer = await stripe.customers
-      .create({ email: user.email, name: user.username })
+      .create({ email: user.email, name: profile?.username })
       .catch((err) => console.error(err));
     if (!customer) throw new Error(ERRORS.STRIPE_CUSTOMER_NOT_CREATED);
 
@@ -100,18 +132,21 @@ export const PREAUTH_getUserByCustomerId = internalQuery({
     customerId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
+    const profile = await ctx.db
+      .query("userProfiles")
       .withIndex("customerId", (q) => q.eq("customerId", args.customerId))
       .unique();
-    if (!user) {
+    if (!profile) {
       throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
     }
-    const subscription = await ctx.db
-      .query("subscriptions")
-      .withIndex("userId", (q) => q.eq("userId", user._id))
-      .unique();
-    if (!subscription) {
+    const [user, subscription] = await Promise.all([
+      ctx.db.get(profile.userId),
+      ctx.db
+        .query("subscriptions")
+        .withIndex("userId", (q) => q.eq("userId", profile.userId))
+        .unique(),
+    ]);
+    if (!user || !subscription) {
       throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
     }
     const plan = await ctx.db.get(subscription.planId);
@@ -120,6 +155,10 @@ export const PREAUTH_getUserByCustomerId = internalQuery({
     }
     return {
       ...user,
+      username: profile.username,
+      imageId: profile.imageId,
+      image: profile.image,
+      customerId: profile.customerId,
       subscription: {
         ...subscription,
         planKey: plan.key,
@@ -354,21 +393,35 @@ export const createCustomerPortal = action({
   handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return;
+      throw new Error("User not authenticated");
     }
-    const user = await ctx.runQuery(api.app.getCurrentUser);
-    if (!user || !user.customerId) {
-      throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
+    const [user, profile] = await Promise.all([
+      ctx.runQuery(internal.stripe.PREAUTH_getUserById, { userId }),
+      ctx.runQuery(internal.stripe.PREAUTH_getUserProfile, { userId }),
+    ]);
+    if (!user) {
+      throw new Error("User not found");
     }
-
-    const customerPortal = await stripe.billingPortal.sessions.create({
-      customer: user.customerId,
-      return_url: `${SITE_URL}/dashboard/settings/billing`,
+    if (profile?.customerId) {
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: profile.customerId,
+        return_url: `${SITE_URL}/settings/billing`,
+      });
+      return portal.url;
+    }
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: profile?.username,
     });
-    if (!customerPortal) {
-      throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
-    }
-    return customerPortal.url;
+    await ctx.runMutation(internal.stripe.PREAUTH_updateCustomerId, {
+      userId: userId,
+      customerId: customer.id,
+    });
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      return_url: `${SITE_URL}/settings/billing`,
+    });
+    return portal.url;
   },
 });
 
