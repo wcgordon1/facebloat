@@ -4,6 +4,7 @@ import { Button } from '@/ui/button';
 import { cn } from '@/utils/misc';
 import { api } from '../../convex/_generated/api';
 import { MemoizedMarkdown } from '@/ui/memoized-markdown';
+import { CopyButton } from '@/ui/copy-button';
 
 interface Message {
   id: string;
@@ -198,22 +199,37 @@ For now, I can help you with general health and fitness advice! Would you like s
               message.role === 'user' ? "justify-end" : "justify-start"
             )}
           >
-            <div
-              className={cn(
-                "max-w-[80%] rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md",
-                message.role === 'user'
-                  ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                  : "bg-muted text-muted-foreground border"
-              )}
-            >
-              {message.role === 'assistant' ? (
-                <MemoizedMarkdown 
-                  content={message.content} 
-                  id={message.id}
-                  className="text-muted-foreground"
-                />
-              ) : (
-                message.content
+            <div className={cn(
+              "max-w-[80%]",
+              message.role === 'user' ? "flex flex-col items-end" : "flex flex-col items-start"
+            )}>
+              <div
+                className={cn(
+                  "rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md",
+                  message.role === 'user'
+                    ? "bg-primary text-primary-foreground whitespace-pre-wrap"
+                    : "bg-muted text-muted-foreground border"
+                )}
+              >
+                {message.role === 'assistant' ? (
+                  <MemoizedMarkdown 
+                    content={message.content} 
+                    id={message.id}
+                    className="text-muted-foreground"
+                  />
+                ) : (
+                  message.content
+                )}
+              </div>
+              
+              {/* Copy button for AI responses */}
+              {message.role === 'assistant' && (
+                <div className="mt-2 ml-2">
+                  <CopyButton 
+                    text={message.content}
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                  />
+                </div>
               )}
             </div>
           </div>

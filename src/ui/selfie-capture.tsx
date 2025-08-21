@@ -439,7 +439,7 @@ export function SelfieCapture() {
           <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800 dark:text-blue-300">
             <p className="font-medium mb-1">Privacy & Usage Notice</p>
-            <p>This tool is for appearance tracking only and is not a medical diagnostic tool. Photos are processed on your device when possible and stored securely in your account.</p>
+            <p>This tool is for appearance tracking only and is not a medical diagnostic tool. Please consult your doctor for medical advice.</p>
           </div>
         </div>
       </div>
