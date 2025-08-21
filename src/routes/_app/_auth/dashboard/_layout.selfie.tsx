@@ -1,18 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Camera, Image, TrendingUp } from "lucide-react";
+import { useState } from "react";
 import siteConfig from "~/site.config";
 import { SelfieCapture } from "@/ui/selfie-capture";
+import { PhotoGallery } from "@/ui/photo-gallery";
 
 export const Route = createFileRoute("/_app/_auth/dashboard/_layout/selfie")({
   component: Selfie,
   beforeLoad: () => ({
     title: `${siteConfig.siteTitle} - Selfie Tracker`,
-    headerTitle: "Selfie Progress",
+    headerTitle: "Selfie Uploader",
     headerDescription: "Track your transformation with photos.",
   }),
 });
 
+type ViewMode = "capture" | "gallery";
+
 export default function Selfie() {
+  const [viewMode, setViewMode] = useState<ViewMode>("capture");
 
   return (
     <div className="flex h-full w-full bg-secondary px-6 py-8 dark:bg-black">
@@ -30,29 +35,39 @@ export default function Selfie() {
             <div className="w-full border-b border-border" />
           </div>
           <div className="relative mx-auto flex w-full flex-col items-center p-6">
-            {/* Selfie Capture Component */}
-            <div className="mb-8 w-full max-w-md">
-              <SelfieCapture />
-            </div>
+            {viewMode === "capture" ? (
+              <>
+                {/* Selfie Capture Component */}
+                <div className="mb-8 w-full max-w-md">
+                  <SelfieCapture />
+                </div>
 
-            {/* Feature Info Cards */}
-            <div className="z-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-              <div className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50">
-                <Image className="h-6 w-6 mb-2 text-primary/60" />
-                <h3 className="font-medium text-sm text-primary">Before Photos</h3>
-                <p className="text-xs text-primary/60 text-center">Upload your starting photos</p>
-              </div>
-              <div className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50">
-                <TrendingUp className="h-6 w-6 mb-2 text-primary/60" />
-                <h3 className="font-medium text-sm text-primary">Progress Tracking</h3>
-                <p className="text-xs text-primary/60 text-center">See your changes over time</p>
-              </div>
-              <div className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50">
-                <Camera className="h-6 w-6 mb-2 text-primary/60" />
-                <h3 className="font-medium text-sm text-primary">Regular Updates</h3>
-                <p className="text-xs text-primary/60 text-center">Keep documenting your journey</p>
-              </div>
-            </div>
+                {/* Feature Info Cards */}
+                <div className="z-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+                  <button
+                    onClick={() => setViewMode("gallery")}
+                    className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50 hover:bg-card/80 hover:border-primary/30 transition-colors cursor-pointer group"
+                  >
+                    <Image className="h-6 w-6 mb-2 text-primary/60 group-hover:text-primary transition-colors" />
+                    <h3 className="font-medium text-sm text-primary">Photo Gallery</h3>
+                    <p className="text-xs text-primary/60 text-center">View your progress photos</p>
+                  </button>
+                  <div className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50">
+                    <TrendingUp className="h-6 w-6 mb-2 text-primary/60" />
+                    <h3 className="font-medium text-sm text-primary">Progress Tracking</h3>
+                    <p className="text-xs text-primary/60 text-center">See your changes over time</p>
+                  </div>
+                  <div className="flex flex-col items-center p-4 rounded-lg border border-border bg-card/50">
+                    <Camera className="h-6 w-6 mb-2 text-primary/60" />
+                    <h3 className="font-medium text-sm text-primary">Regular Updates</h3>
+                    <p className="text-xs text-primary/60 text-center">Keep documenting your journey</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Photo Gallery Component */
+              <PhotoGallery onBack={() => setViewMode("capture")} />
+            )}
           </div>
         </div>
       </div>
