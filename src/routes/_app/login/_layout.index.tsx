@@ -20,8 +20,19 @@ export const Route = createFileRoute("/_app/login/_layout/")({
 function Login() {
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const { signOut } = useAuthActions();
   const { data: user } = useQuery(convexQuery(api.app.getCurrentUser, {}));
   const navigate = useNavigate();
+  useEffect(() => {
+    // Clear any stale tokens from previous auth config
+    signOut().catch(() => {});
+    // Also proactively clear known auth keys if present (belt and suspenders)
+    try {
+      localStorage.removeItem("convex:auth");
+      localStorage.removeItem("@convex/auth");
+      sessionStorage.removeItem("convex:auth");
+    } catch {}
+  }, []);
   useEffect(() => {
     if ((isLoading && !isAuthenticated) || !user) {
       return;
@@ -52,10 +63,17 @@ function LoginForm({ onSubmit }: { onSubmit: (email: string) => void }) {
       email: "",
     },
     onSubmit: async ({ value }) => {
+      if (isSubmitting) return;
       setIsSubmitting(true);
-      await signIn("resend-otp", value);
-      onSubmit(value.email);
-      setIsSubmitting(false);
+      const normalizedEmail = value.email.trim().toLowerCase();
+      try {
+        await signIn("email", { email: normalizedEmail });
+        onSubmit(normalizedEmail);
+      } catch (err) {
+        console.error("Failed to send OTP:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
   return (
@@ -94,6 +112,7 @@ function LoginForm({ onSubmit }: { onSubmit: (email: string) => void }) {
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                disabled={isSubmitting}
                 className={`bg-transparent ${
                   field.state.meta?.errors.length > 0 &&
                   "border-destructive focus-visible:ring-destructive"
@@ -118,7 +137,7 @@ function LoginForm({ onSubmit }: { onSubmit: (email: string) => void }) {
           */}
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isSubmitting} aria-disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="animate-spin" />
           ) : (
@@ -166,13 +185,24 @@ function LoginForm({ onSubmit }: { onSubmit: (email: string) => void }) {
 
 function VerifyForm({ email }: { email: string }) {
   const { signIn } = useAuthActions();
+  const [verifying, setVerifying] = useState(false);
   const form = useForm({
     validatorAdapter: zodValidator(),
     defaultValues: {
       code: "",
     },
     onSubmit: async ({ value }) => {
-      await signIn("resend-otp", { email, code: value.code });
+      if (verifying) return;
+      setVerifying(true);
+      const normalizedEmail = email.trim().toLowerCase();
+      const cleanedCode = value.code.trim().replace(/\s|-/g, "");
+      try {
+        await signIn("email", { email: normalizedEmail, code: cleanedCode });
+      } catch (err) {
+        console.error("Failed to verify OTP:", err);
+      } finally {
+        setVerifying(false);
+      }
     },
   });
   return (
@@ -236,7 +266,7 @@ function VerifyForm({ email }: { email: string }) {
           */}
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={verifying} aria-disabled={verifying}>
           Continue
         </Button>
       </form>
@@ -247,7 +277,7 @@ function VerifyForm({ email }: { email: string }) {
           Did not receive the code?
         </p>
         <Button
-          onClick={() => signIn("resend-otp", { email })}
+          onClick={() => signIn("email", { email: email.trim().toLowerCase() })}
           variant="ghost"
           className="w-full hover:bg-transparent"
         >

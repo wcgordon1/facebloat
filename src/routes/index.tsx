@@ -638,11 +638,11 @@ function Index() {
             >
               the Open-Source Remix SaaS by&nbsp;
             </a>
-            <p className="flex items-center whitespace-nowrap text-center text-sm font-medium text-primary/60">
+            <span className="flex items-center whitespace-nowrap text-center text-sm font-medium text-primary/60">
               <a href="https://bento.me/danielkanem?utm_source=remixconvexsaas">
                 DanielKanem.
               </a>
-            </p>
+            </span>
           </p>
           <p className="flex items-center whitespace-nowrap text-center text-sm font-medium text-primary/60">
             Source code available on&nbsp;{" "}
