@@ -1,6 +1,6 @@
-import { useAuthActions } from "@convex-dev/auth/react";
 import { CURRENCIES } from "@cvx/schema";
 import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useClerk } from "@clerk/clerk-react";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -34,11 +34,11 @@ export function getLocaleCurrency() {
 export const useSignOut = () => {
   const router = useRouter();
   const navigate = useNavigate();
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
 
   return async () => {
     await signOut();
     router.invalidate();
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
 };

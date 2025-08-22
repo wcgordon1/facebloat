@@ -1,6 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
-import { authTables } from "@convex-dev/auth/server";
-import { v, Infer } from "convex/values";
+import { v } from "convex/values";
 
 export const CURRENCIES = {
   USD: "usd",
@@ -10,7 +9,7 @@ export const currencyValidator = v.union(
   v.literal(CURRENCIES.USD),
   v.literal(CURRENCIES.EUR),
 );
-export type Currency = Infer<typeof currencyValidator>;
+export type Currency = typeof CURRENCIES[keyof typeof CURRENCIES];
 
 export const INTERVALS = {
   MONTH: "month",
@@ -20,7 +19,7 @@ export const intervalValidator = v.union(
   v.literal(INTERVALS.MONTH),
   v.literal(INTERVALS.YEAR),
 );
-export type Interval = Infer<typeof intervalValidator>;
+export type Interval = typeof INTERVALS[keyof typeof INTERVALS];
 
 export const PLANS = {
   FREE: "free",
@@ -30,7 +29,7 @@ export const planKeyValidator = v.union(
   v.literal(PLANS.FREE),
   v.literal(PLANS.PRO),
 );
-export type PlanKey = Infer<typeof planKeyValidator>;
+export type PlanKey = typeof PLANS[keyof typeof PLANS];
 
 const priceValidator = v.object({
   stripeId: v.string(),
@@ -41,8 +40,7 @@ const pricesValidator = v.object({
   [CURRENCIES.EUR]: priceValidator,
 });
 
-const schema = defineSchema({
-  ...authTables,
+export default defineSchema({
   users: defineTable({
     name: v.optional(v.string()),
     image: v.optional(v.string()),
@@ -51,7 +49,7 @@ const schema = defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    username: v.optional(v.string()), // Will be cleaned up
+    username: v.optional(v.string()),
   }).index("email", ["email"]),
   userProfiles: defineTable({
     userId: v.id("users"),
@@ -105,7 +103,6 @@ const schema = defineSchema({
       height: v.optional(v.number()),
       deviceInfo: v.optional(v.string()),
     })),
-    // Future AI analysis fields
     analysisData: v.optional(v.any()),
     analysisStatus: v.optional(v.union(
       v.literal("pending"),
@@ -116,5 +113,3 @@ const schema = defineSchema({
   })
     .index("userId", ["userId"]),
 });
-
-export default schema;

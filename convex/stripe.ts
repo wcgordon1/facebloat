@@ -7,11 +7,11 @@ import {
 } from "@cvx/_generated/server";
 import { v } from "convex/values";
 import { ERRORS } from "~/errors";
-import { auth } from "@cvx/auth";
 import { currencyValidator, intervalValidator, PLANS } from "@cvx/schema";
 import { api, internal } from "~/convex/_generated/api";
 import { SITE_URL, STRIPE_SECRET_KEY } from "@cvx/env";
 import { asyncMap } from "convex-helpers";
+// Removed verifyClerkJwt import - using ctx.auth.getUserIdentity() directly"
 
 /**
  * TODO: Uncomment to require Stripe keys.
@@ -48,19 +48,21 @@ export const PREAUTH_updateCustomerId = internalMutation({
     customerId: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("User not authenticated");
     }
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("userId", (q) => q.eq("userId", userId))
+      .withIndex("userId", (q) => q.eq("userId", userId as any))
       .unique();
     if (profile) {
       await ctx.db.patch(profile._id, { customerId: args.customerId });
     } else {
       await ctx.db.insert("userProfiles", {
-        userId,
+        userId: userId as any,
         customerId: args.customerId,
       });
     }
@@ -314,14 +316,16 @@ export const getCurrentUserSubscription = internalQuery({
     planId: v.id("plans"),
   },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
     }
     const [currentSubscription, newPlan] = await Promise.all([
       ctx.db
         .query("subscriptions")
-        .withIndex("userId", (q) => q.eq("userId", userId))
+        .withIndex("userId", (q) => q.eq("userId", userId as any))
         .unique(),
       ctx.db.get(args.planId),
     ]);
@@ -391,13 +395,15 @@ export const createCustomerPortal = action({
     userId: v.id("users"),
   },
   handler: async (ctx) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("User not authenticated");
     }
     const [user, profile] = await Promise.all([
-      ctx.runQuery(internal.stripe.PREAUTH_getUserById, { userId }),
-      ctx.runQuery(internal.stripe.PREAUTH_getUserProfile, { userId }),
+      ctx.runQuery(internal.stripe.PREAUTH_getUserById, { userId: userId as any }),
+      ctx.runQuery(internal.stripe.PREAUTH_getUserProfile, { userId: userId as any }),
     ]);
     if (!user) {
       throw new Error("User not found");
@@ -414,7 +420,7 @@ export const createCustomerPortal = action({
       name: profile?.username,
     });
     await ctx.runMutation(internal.stripe.PREAUTH_updateCustomerId, {
-      userId: userId,
+      userId: userId as any,
       customerId: customer.id,
     });
     const portal = await stripe.billingPortal.sessions.create({

@@ -5,3 +5,5 @@ export const SITE_URL = process.env.SITE_URL;
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
+export const CLERK_PUBLISHABLE_KEY = process.env.VITE_CLERK_PUBLISHABLE_KEY;

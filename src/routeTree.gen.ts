@@ -16,7 +16,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AppImport } from './routes/_app'
 import { Route as IndexImport } from './routes/index'
 import { Route as AppAuthImport } from './routes/_app/_auth'
+import { Route as AppSignupLayoutImport } from './routes/_app/signup/_layout'
 import { Route as AppLoginLayoutImport } from './routes/_app/login/_layout'
+import { Route as AppSignupLayoutIndexImport } from './routes/_app/signup/_layout.index'
 import { Route as AppLoginLayoutIndexImport } from './routes/_app/login/_layout.index'
 import { Route as AppAuthOnboardingLayoutImport } from './routes/_app/_auth/onboarding/_layout'
 import { Route as AppAuthDashboardLayoutImport } from './routes/_app/_auth/dashboard/_layout'
@@ -32,6 +34,7 @@ import { Route as AppAuthDashboardLayoutSettingsBillingImport } from './routes/_
 
 // Create Virtual Routes
 
+const AppSignupImport = createFileRoute('/_app/signup')()
 const AppLoginImport = createFileRoute('/_app/login')()
 const AppAuthOnboardingImport = createFileRoute('/_app/_auth/onboarding')()
 const AppAuthDashboardImport = createFileRoute('/_app/_auth/dashboard')()
@@ -46,6 +49,11 @@ const AppRoute = AppImport.update({
 const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AppSignupRoute = AppSignupImport.update({
+  path: '/signup',
+  getParentRoute: () => AppRoute,
 } as any)
 
 const AppLoginRoute = AppLoginImport.update({
@@ -68,9 +76,19 @@ const AppAuthDashboardRoute = AppAuthDashboardImport.update({
   getParentRoute: () => AppAuthRoute,
 } as any)
 
+const AppSignupLayoutRoute = AppSignupLayoutImport.update({
+  id: '/_layout',
+  getParentRoute: () => AppSignupRoute,
+} as any)
+
 const AppLoginLayoutRoute = AppLoginLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => AppLoginRoute,
+} as any)
+
+const AppSignupLayoutIndexRoute = AppSignupLayoutIndexImport.update({
+  path: '/',
+  getParentRoute: () => AppSignupLayoutRoute,
 } as any)
 
 const AppLoginLayoutIndexRoute = AppLoginLayoutIndexImport.update({
@@ -182,6 +200,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLoginLayoutImport
       parentRoute: typeof AppLoginRoute
     }
+    '/_app/signup': {
+      id: '/_app/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AppSignupImport
+      parentRoute: typeof AppImport
+    }
+    '/_app/signup/_layout': {
+      id: '/_app/signup/_layout'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AppSignupLayoutImport
+      parentRoute: typeof AppSignupRoute
+    }
     '/_app/_auth/dashboard': {
       id: '/_app/_auth/dashboard'
       path: '/dashboard'
@@ -216,6 +248,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login/'
       preLoaderRoute: typeof AppLoginLayoutIndexImport
       parentRoute: typeof AppLoginLayoutImport
+    }
+    '/_app/signup/_layout/': {
+      id: '/_app/signup/_layout/'
+      path: '/'
+      fullPath: '/signup/'
+      preLoaderRoute: typeof AppSignupLayoutIndexImport
+      parentRoute: typeof AppSignupLayoutImport
     }
     '/_app/_auth/dashboard/_layout/checkout': {
       id: '/_app/_auth/dashboard/_layout/checkout'
@@ -314,6 +353,11 @@ export const routeTree = rootRoute.addChildren({
         AppLoginLayoutIndexRoute,
       }),
     }),
+    AppSignupRoute: AppSignupRoute.addChildren({
+      AppSignupLayoutRoute: AppSignupLayoutRoute.addChildren({
+        AppSignupLayoutIndexRoute,
+      }),
+    }),
   }),
 })
 
@@ -336,7 +380,8 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_app.tsx",
       "children": [
         "/_app/_auth",
-        "/_app/login"
+        "/_app/login",
+        "/_app/signup"
       ]
     },
     "/_app/_auth": {
@@ -359,6 +404,20 @@ export const routeTree = rootRoute.addChildren({
       "parent": "/_app/login",
       "children": [
         "/_app/login/_layout/"
+      ]
+    },
+    "/_app/signup": {
+      "filePath": "_app/signup",
+      "parent": "/_app",
+      "children": [
+        "/_app/signup/_layout"
+      ]
+    },
+    "/_app/signup/_layout": {
+      "filePath": "_app/signup/_layout.tsx",
+      "parent": "/_app/signup",
+      "children": [
+        "/_app/signup/_layout/"
       ]
     },
     "/_app/_auth/dashboard": {
@@ -397,6 +456,10 @@ export const routeTree = rootRoute.addChildren({
     "/_app/login/_layout/": {
       "filePath": "_app/login/_layout.index.tsx",
       "parent": "/_app/login/_layout"
+    },
+    "/_app/signup/_layout/": {
+      "filePath": "_app/signup/_layout.index.tsx",
+      "parent": "/_app/signup/_layout"
     },
     "/_app/_auth/dashboard/_layout/checkout": {
       "filePath": "_app/_auth/dashboard/_layout.checkout.tsx",

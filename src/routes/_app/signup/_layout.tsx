@@ -1,11 +1,11 @@
 import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { Logo } from "@/ui/logo";
 
-export const Route = createFileRoute("/_app/login/_layout")({
-  component: LoginLayout,
+export const Route = createFileRoute("/_app/signup/_layout")({
+  component: SignupLayout,
 });
 
-function LoginLayout() {
+function SignupLayout() {
   return (
     <div className="flex h-screen w-full">
       <div className="absolute left-1/2 top-10 mx-auto flex -translate-x-1/2 transform lg:hidden">
@@ -20,7 +20,6 @@ function LoginLayout() {
         <Link to="/" className="z-10 flex h-10 w-10 items-center gap-1">
           <Logo />
         </Link>
-        {/* You can add a quote or branding here if needed */}
         <div className="base-grid absolute left-0 top-0 z-0 h-full w-full opacity-40" />
       </div>
       <div className="flex h-full w-full flex-col border-l border-primary/5 bg-card lg:w-[50%]">

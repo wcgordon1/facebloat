@@ -1,11 +1,11 @@
 import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useConvexAuth } from 'convex/react';
 
-export const Route = createFileRoute("/_app/login/_layout/")({
-  component: Login,
+export const Route = createFileRoute("/_app/signup/_layout/")({
+  component: Signup,
 });
 
-function Login() {
+function Signup() {
   const { isAuthenticated } = useConvexAuth();
   
   // If already authenticated, redirect to dashboard
@@ -13,12 +13,12 @@ function Login() {
     return <Navigate to="/dashboard" />;
   }
   
-  // Redirect to Clerk's hosted sign-in page
-  window.location.href = `${window.location.origin}/sign-in`;
+  // Redirect to Clerk's hosted sign-up page
+  window.location.href = `${window.location.origin}/sign-up`;
   
   return (
     <div className="flex h-full w-full items-center justify-center p-8">
-      <p>Redirecting to sign in...</p>
+      <p>Redirecting to sign up...</p>
     </div>
   );
 }

@@ -9,9 +9,8 @@ import { ThemeSwitcherHome } from "@/ui/theme-switcher";
 import { BMI } from "@/ui/bmi";
 import { SimpleChat } from "@/ui/simple-chat";
 import ShadowPNG from "/images/shadow.png";
-import { useConvexAuth } from "@convex-dev/react-query";
-import { Route as AuthLoginRoute } from "@/routes/_app/login/_layout.index";
-import { Route as DashboardRoute } from "@/routes/_app/_auth/dashboard/_layout.index";
+import { useConvexAuth } from 'convex/react';
+import { SignInButton } from '@clerk/clerk-react';
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -85,19 +84,23 @@ function Index() {
               />
             </svg>
           </a>
-          <Link
-            to={
-              isAuthenticated
-                ? DashboardRoute.fullPath
-                : AuthLoginRoute.fullPath
-            }
-            className={buttonVariants({ size: "sm" })}
-            disabled={isLoading}
-          >
-            {isLoading && <Loader2 className="animate-spin w-16 h-4" />}
-            {!isLoading && isAuthenticated && "Dashboard"}
-            {!isLoading && !isAuthenticated && "Get Started"}
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              className={buttonVariants({ size: "sm" })}
+              disabled={isLoading}
+            >
+              {isLoading && <Loader2 className="animate-spin w-16 h-4" />}
+              {!isLoading && "Dashboard"}
+            </Link>
+          ) : (
+            <SignInButton mode="redirect" forceRedirectUrl="/dashboard">
+              <Button size="sm" disabled={isLoading}>
+                {isLoading && <Loader2 className="animate-spin w-16 h-4" />}
+                {!isLoading && "Get Started"}
+              </Button>
+            </SignInButton>
+          )}
         </div>
       </div>
 
@@ -142,7 +145,7 @@ function Index() {
           </p>
           <div className="mt-2 flex w-full items-center justify-center gap-2">
             <Link
-              to={AuthLoginRoute.fullPath}
+              to="/login"
               className={cn(buttonVariants({ size: "sm" }), "hidden sm:flex")}
             >
               Get Started
@@ -543,7 +546,7 @@ function Index() {
               Build your app on a solid, scalable, well-tested foundation.
             </p>
             <Link
-              to={AuthLoginRoute.fullPath}
+              to="/login"
               className={buttonVariants({ size: "sm" })}
             >
               Get Started

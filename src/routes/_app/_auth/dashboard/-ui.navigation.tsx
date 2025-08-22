@@ -3,37 +3,29 @@ import {
   ChevronDown,
   Slash,
   Check,
-  Settings,
-  CreditCard,
-  LogOut,
 } from "lucide-react";
-import { cn, useSignOut } from "@/utils/misc";
-import { ThemeSwitcher } from "@/ui/theme-switcher";
+import { cn } from "@/utils/misc";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/ui/dropdown-menu";
 import { Button } from "@/ui/button";
 import { buttonVariants } from "@/ui/button-util";
 import { Logo } from "@/ui/logo";
-import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
+import { Link, useMatchRoute } from "@tanstack/react-router";
 import { Route as DashboardRoute } from "@/routes/_app/_auth/dashboard/_layout.index";
 import { Route as SelfieRoute } from "@/routes/_app/_auth/dashboard/_layout.selfie";
 import { Route as ExerciseRoute } from "@/routes/_app/_auth/dashboard/_layout.exercise";
 import { Route as DietRoute } from "@/routes/_app/_auth/dashboard/_layout.diet";
-import { Route as SettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.index";
-import { Route as BillingSettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.billing";
 
 import { User } from "~/types";
+import { UserButton } from '@clerk/clerk-react';
 
 export function Navigation({ user }: { user: User }) {
-  const signOut = useSignOut();
   const matchRoute = useMatchRoute();
-  const navigate = useNavigate();
   const isDashboardPath = matchRoute({ to: DashboardRoute.fullPath });
   const isSelfiePath = matchRoute({ to: SelfieRoute.fullPath });
   const isExercisePath = matchRoute({ to: ExerciseRoute.fullPath });
@@ -120,77 +112,7 @@ export function Navigation({ user }: { user: User }) {
         </div>
 
         <div className="flex h-10 items-center gap-3">
-          
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 rounded-full">
-                {user.avatarUrl ? (
-                  <img
-                    className="min-h-8 min-w-8 rounded-full object-cover"
-                    alt={user.username ?? user.email}
-                    src={user.avatarUrl}
-                  />
-                ) : (
-                  <span className="min-h-8 min-w-8 rounded-full bg-gradient-to-br from-lime-400 from-10% via-cyan-300 to-blue-500" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              sideOffset={8}
-              className="fixed -right-4 min-w-56 bg-card p-2"
-            >
-              <DropdownMenuItem className="group flex-col items-start focus:bg-transparent">
-                <p className="text-sm font-medium text-primary/80 group-hover:text-primary group-focus:text-primary">
-                  {user?.username || ""}
-                </p>
-                <p className="text-sm text-primary/60">{user?.email}</p>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="group h-9 w-full cursor-pointer justify-between rounded-md px-2"
-                onClick={() => navigate({ to: SettingsRoute.fullPath })}
-              >
-                <span className="text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
-                  Settings
-                </span>
-                <Settings className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60 group-hover:text-primary group-focus:text-primary" />
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="group h-9 w-full cursor-pointer justify-between rounded-md px-2"
-                onClick={() => navigate({ to: BillingSettingsRoute.fullPath })}
-              >
-                <span className="text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
-                  Billing
-                </span>
-                <CreditCard className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60 group-hover:text-primary group-focus:text-primary" />
-              </DropdownMenuItem>
-
-
-              <DropdownMenuItem
-                className={cn(
-                  "group flex h-9 justify-between rounded-md px-2 hover:bg-transparent",
-                )}
-              >
-                <span className="w-full text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
-                  Theme
-                </span>
-                <ThemeSwitcher />
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator className="mx-0 my-2" />
-
-              <DropdownMenuItem
-                className="group h-9 w-full cursor-pointer justify-between rounded-md px-2"
-                onClick={() => signOut()}
-              >
-                <span className="text-sm text-primary/60 group-hover:text-primary group-focus:text-primary">
-                  Log Out
-                </span>
-                <LogOut className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60 group-hover:text-primary group-focus:text-primary" />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserButton afterSignOutUrl="/" />
         </div>
       </div>
 

@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "@cvx/_generated/server";
-import { auth } from "@cvx/auth";
 
 /**
  * Upload a selfie photo
@@ -19,14 +18,16 @@ export const uploadSelfie = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("Not authenticated");
     }
 
     // Create selfie record
     const selfieId = await ctx.db.insert("selfiePhotos", {
-      userId,
+      userId: userId as any,
       storageId: args.storageId,
       originalFilename: args.originalFilename,
       mimeType: args.mimeType,
@@ -46,14 +47,16 @@ export const uploadSelfie = mutation({
 export const getUserSelfies = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       return [];
     }
 
     const selfies = await ctx.db
       .query("selfiePhotos")
-      .withIndex("userId", (q) => q.eq("userId", userId))
+      .withIndex("userId", (q) => q.eq("userId", userId as any))
       .order("desc")
       .collect();
 
@@ -78,7 +81,9 @@ export const getUserSelfies = query({
 export const getSelfie = query({
   args: { selfieId: v.id("selfiePhotos") },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("Not authenticated");
     }
@@ -107,7 +112,9 @@ export const getSelfie = query({
 export const deleteSelfie = mutation({
   args: { selfieId: v.id("selfiePhotos") },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("Not authenticated");
     }
@@ -136,7 +143,9 @@ export const deleteSelfie = mutation({
 export const generateSelfieUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("Not authenticated");
     }
@@ -160,7 +169,9 @@ export const updateSelfieAnalysis = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await auth.getUserId(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
     if (!userId) {
       throw new Error("Not authenticated");
     }

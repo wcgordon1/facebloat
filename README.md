@@ -55,3 +55,27 @@ Features provided out of the box:
 
 Check out the [Getting Started Documentation](https://github.com/get-convex/convex-saas/tree/main/docs) to get up
 and running.
+
+# Clerk Auth Environment Variables
+
+## Frontend (.env.local for dev, production env for prod)
+
+```
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_dev_key_here # (dev)
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_your_prod_key_here # (prod)
+```
+
+## Convex Backend (set via CLI)
+
+### Development
+```
+npx convex env set CLERK_SECRET_KEY sk_test_your_dev_secret_here
+```
+
+### Production
+```
+npx convex env --prod set CLERK_SECRET_KEY sk_live_your_prod_secret_here
+```
+
+- Get your keys from the Clerk dashboard: https://dashboard.clerk.com/
+- The publishable key is for the frontend, the secret key is for backend JWT verification (optional, but recommended for protected Convex functions).

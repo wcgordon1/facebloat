@@ -1,5 +1,4 @@
 import { httpRouter } from "convex/server";
-import { auth } from "./auth";
 import { ActionCtx, httpAction } from "@cvx/_generated/server";
 import { ERRORS } from "~/errors";
 import { stripe } from "@cvx/stripe";
@@ -241,7 +240,5 @@ http.route({
 });
 
 
-
-auth.addHttpRoutes(http);
 
 export default http;
