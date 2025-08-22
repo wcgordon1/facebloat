@@ -5,12 +5,87 @@ import { asyncMap } from "convex-helpers";
 import { v } from "convex/values";
 // Removed unused User import
 
-// This now uses the new users.ts functions
+// Get current user with automatic creation if needed
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    // Use the new user sync function
-    return await ctx.runQuery("users:getCurrentUser" as any, {});
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    let user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      // User exists in Clerk but not in our database
+      // This can happen before webhooks are set up or for existing users
+      // Return a temporary user object with Clerk data
+      return {
+        _id: identity.subject as any,
+        _creationTime: Date.now(),
+        clerkId: identity.subject,
+        email: typeof identity.email === 'string' ? identity.email : undefined,
+        name: typeof identity.name === 'string' ? identity.name : 
+              typeof identity.given_name === 'string' ? identity.given_name : undefined,
+        username: typeof identity.username === 'string' ? identity.username : undefined,
+        imageUrl: typeof identity.picture === 'string' ? identity.picture : undefined,
+        onboardingCompleted: false,
+        // Legacy fields for compatibility
+        avatarUrl: typeof identity.picture === 'string' ? identity.picture : undefined,
+        customerId: undefined as string | undefined,
+      };
+    }
+
+    // Get userProfile for additional fields like customerId
+    const userProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("userId", (q) => q.eq("userId", user._id))
+      .unique();
+
+    // Combine user data with profile data for full compatibility
+    return {
+      ...user,
+      avatarUrl: user.imageUrl,
+      username: user.username || userProfile?.username,
+      customerId: userProfile?.customerId,
+      imageId: userProfile?.imageId,
+    };
+  },
+});
+
+// Sync current user to database (call this when user first accesses dashboard)
+export const syncCurrentUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!existingUser) {
+      // Create user in database
+      const email = typeof identity.email === 'string' ? identity.email : undefined;
+      const name = typeof identity.name === 'string' ? identity.name : 
+                   typeof identity.given_name === 'string' ? identity.given_name : undefined;
+      const username = typeof identity.username === 'string' ? identity.username : undefined;
+      const imageUrl = typeof identity.picture === 'string' ? identity.picture : undefined;
+
+      await ctx.db.insert("users", {
+        clerkId: identity.subject,
+        email,
+        name,
+        username,
+        imageUrl,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        lastSignInAt: Date.now(),
+        onboardingCompleted: false,
+      });
+    }
   },
 });
 
