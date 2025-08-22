@@ -20,14 +20,20 @@ export const uploadSelfie = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("Not authenticated");
+
+    // Get the database user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found in database");
     }
 
     // Create selfie record
     const selfieId = await ctx.db.insert("selfiePhotos", {
-      userId: userId as any,
+      userId: user._id,
       storageId: args.storageId,
       originalFilename: args.originalFilename,
       mimeType: args.mimeType,
@@ -49,14 +55,20 @@ export const getUserSelfies = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
+
+    // Get the database user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
       return [];
     }
 
     const selfies = await ctx.db
       .query("selfiePhotos")
-      .withIndex("userId", (q) => q.eq("userId", userId as any))
+      .withIndex("userId", (q) => q.eq("userId", user._id))
       .order("desc")
       .collect();
 
@@ -83,9 +95,15 @@ export const getSelfie = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("Not authenticated");
+
+    // Get the database user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found in database");
     }
 
     const selfie = await ctx.db.get(args.selfieId);
@@ -94,7 +112,7 @@ export const getSelfie = query({
     }
 
     // Row-level security: ensure user owns this selfie
-    if (selfie.userId !== userId) {
+    if (selfie.userId !== user._id) {
       throw new Error("Not authorized to access this selfie");
     }
 
@@ -114,9 +132,15 @@ export const deleteSelfie = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("Not authenticated");
+
+    // Get the database user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found in database");
     }
 
     const selfie = await ctx.db.get(args.selfieId);
@@ -125,7 +149,7 @@ export const deleteSelfie = mutation({
     }
 
     // Row-level security: ensure user owns this selfie
-    if (selfie.userId !== userId) {
+    if (selfie.userId !== user._id) {
       throw new Error("Not authorized to delete this selfie");
     }
 
@@ -145,10 +169,6 @@ export const generateSelfieUploadUrl = mutation({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
 
     return await ctx.storage.generateUploadUrl();
   },
@@ -171,9 +191,15 @@ export const updateSelfieAnalysis = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("Not authenticated");
+
+    // Get the database user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found in database");
     }
 
     const selfie = await ctx.db.get(args.selfieId);
@@ -182,7 +208,7 @@ export const updateSelfieAnalysis = mutation({
     }
 
     // Row-level security: ensure user owns this selfie
-    if (selfie.userId !== userId) {
+    if (selfie.userId !== user._id) {
       throw new Error("Not authorized to update this selfie");
     }
 

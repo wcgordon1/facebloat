@@ -36,11 +36,16 @@ export default function OnboardingUsername() {
     },
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);
-      await completeOnboarding({
-        username: value.username,
-        currency: getLocaleCurrency(),
-      });
-      setIsSubmitting(false);
+      try {
+        await completeOnboarding({
+          username: value.username,
+          currency: getLocaleCurrency(),
+        });
+        // Redirect to dashboard after successful onboarding
+        navigate({ to: DashboardRoute.fullPath });
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
 
