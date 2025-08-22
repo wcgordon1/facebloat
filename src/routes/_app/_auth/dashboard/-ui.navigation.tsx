@@ -3,6 +3,7 @@ import {
   ChevronDown,
   Slash,
   Check,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/utils/misc";
 import {
@@ -20,6 +21,8 @@ import { Route as DashboardRoute } from "@/routes/_app/_auth/dashboard/_layout.i
 import { Route as SelfieRoute } from "@/routes/_app/_auth/dashboard/_layout.selfie";
 import { Route as ExerciseRoute } from "@/routes/_app/_auth/dashboard/_layout.exercise";
 import { Route as DietRoute } from "@/routes/_app/_auth/dashboard/_layout.diet";
+import { Route as SettingsRoute } from "@/routes/_app/_auth/dashboard/_layout.settings";
+import { Route as BillingRoute } from "@/routes/_app/_auth/dashboard/_layout.settings.billing";
 
 import { User } from "~/types";
 import { UserButton } from '@clerk/clerk-react';
@@ -85,7 +88,7 @@ export function Navigation({ user }: { user: User }) {
               className="min-w-56 bg-card p-2"
             >
               <DropdownMenuLabel className="flex items-center text-xs font-normal text-primary/60">
-                Personal Account
+                Account
               </DropdownMenuLabel>
               <DropdownMenuItem className="h-10 w-full cursor-pointer justify-between rounded-md bg-secondary px-2">
                 <div className="flex items-center gap-2">
@@ -106,6 +109,26 @@ export function Navigation({ user }: { user: User }) {
                 <Check className="h-[18px] w-[18px] stroke-[1.5px] text-primary/60" />
               </DropdownMenuItem>
 
+              <Link to={SettingsRoute.fullPath}>
+                <DropdownMenuItem className="h-10 w-full cursor-pointer rounded-md px-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary">
+                      <Settings className="h-4 w-4 text-primary/80" />
+                    </div>
+                    <span className="text-sm font-medium text-primary/80">Settings</span>
+                  </div>
+                </DropdownMenuItem>
+              </Link>
+
+              {(!user.subscription?.planKey || user.subscription.planKey === "free") && (
+                <Link to={BillingRoute.fullPath}>
+                  <DropdownMenuItem className="h-10 w-full cursor-pointer rounded-md bg-primary px-2 text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 hover:text-primary-foreground focus:text-primary-foreground">
+                    <div className="flex w-full items-center justify-center">
+                      <span className="text-sm font-medium">Upgrade Now</span>
+                    </div>
+                  </DropdownMenuItem>
+                </Link>
+              )}
 
             </DropdownMenuContent>
           </DropdownMenu>
