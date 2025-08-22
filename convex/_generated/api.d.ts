@@ -24,6 +24,7 @@ import type * as init from "../init.js";
 import type * as otp_VerificationCodeEmail from "../otp/VerificationCodeEmail.js";
 import type * as selfies from "../selfies.js";
 import type * as stripe from "../stripe.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   "otp/VerificationCodeEmail": typeof otp_VerificationCodeEmail;
   selfies: typeof selfies;
   stripe: typeof stripe;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

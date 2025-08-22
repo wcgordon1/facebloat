@@ -42,15 +42,28 @@ const pricesValidator = v.object({
 
 export default defineSchema({
   users: defineTable({
-    name: v.optional(v.string()),
-    image: v.optional(v.string()),
+    // Clerk user ID (from JWT subject) - optional for migration
+    clerkId: v.optional(v.string()),
+    // Basic user info from Clerk
     email: v.optional(v.string()),
+    name: v.optional(v.string()),
+    username: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    // Clerk metadata
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+    lastSignInAt: v.optional(v.number()),
+    // App-specific fields
+    onboardingCompleted: v.optional(v.boolean()),
+    // Legacy fields for migration compatibility
+    image: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    username: v.optional(v.string()),
-  }).index("email", ["email"]),
+  })
+    .index("clerkId", ["clerkId"])
+    .index("email", ["email"]),
   userProfiles: defineTable({
     userId: v.id("users"),
     name: v.optional(v.string()),

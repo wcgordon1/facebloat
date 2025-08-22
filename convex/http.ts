@@ -2,7 +2,7 @@ import { httpRouter } from "convex/server";
 import { ActionCtx, httpAction } from "@cvx/_generated/server";
 import { ERRORS } from "~/errors";
 import { stripe } from "@cvx/stripe";
-import { STRIPE_WEBHOOK_SECRET } from "@cvx/env";
+import { STRIPE_WEBHOOK_SECRET, CLERK_SECRET_KEY } from "@cvx/env";
 import { z } from "zod";
 import { internal } from "@cvx/_generated/api";
 import { Currency, Interval, PLANS } from "@cvx/schema";
@@ -12,6 +12,7 @@ import {
 } from "@cvx/email/templates/subscriptionEmail";
 import Stripe from "stripe";
 import { User } from "~/types";
+import { Webhook } from "svix";
 // Removed AI SDK imports - using direct Google API approach
 
 
@@ -239,6 +240,83 @@ http.route({
   }),
 });
 
+/**
+ * Handles Clerk webhook events for user sync
+ */
+http.route({
+  path: "/clerk/webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    if (!CLERK_SECRET_KEY) {
+      throw new Error("Missing CLERK_SECRET_KEY environment variable");
+    }
 
+    try {
+      // Verify the webhook signature
+      const svix_id = request.headers.get("svix-id");
+      const svix_timestamp = request.headers.get("svix-timestamp");
+      const svix_signature = request.headers.get("svix-signature");
+
+      if (!svix_id || !svix_timestamp || !svix_signature) {
+        return new Response("Missing webhook headers", { status: 400 });
+      }
+
+      const payload = await request.text();
+      const wh = new Webhook(CLERK_SECRET_KEY);
+      
+      // Verify and parse the webhook
+      const evt = wh.verify(payload, {
+        "svix-id": svix_id,
+        "svix-timestamp": svix_timestamp,
+        "svix-signature": svix_signature,
+      });  // Webhook verification returns unknown type
+
+      const eventType = (evt as any).type;
+      const userData = (evt as any).data;
+
+      switch (eventType) {
+        case "user.created":
+        case "user.updated": {
+          console.log(`Processing ${eventType} for user:`, userData.id);
+          
+          // Convert Clerk timestamps to numbers
+          const createdAt = userData.created_at ? new Date(userData.created_at).getTime() : undefined;
+          const updatedAt = userData.updated_at ? new Date(userData.updated_at).getTime() : undefined;
+          const lastSignInAt = userData.last_sign_in_at ? new Date(userData.last_sign_in_at).getTime() : undefined;
+
+          await ctx.runMutation("users:upsertFromClerk" as any, {
+            clerkId: userData.id,
+            email: userData.email_addresses?.[0]?.email_address,
+            name: userData.first_name && userData.last_name 
+              ? `${userData.first_name} ${userData.last_name}` 
+              : userData.first_name || userData.last_name,
+            username: userData.username,
+            imageUrl: userData.image_url,
+            createdAt,
+            updatedAt,
+            lastSignInAt,
+          });
+          break;
+        }
+
+        case "user.deleted": {
+          console.log("Processing user.deleted for user:", userData.id);
+          await ctx.runMutation("users:deleteFromClerk" as any, {
+            clerkId: userData.id,
+          });
+          break;
+        }
+
+        default:
+          console.log(`Unhandled Clerk webhook event: ${eventType}`);
+      }
+
+      return new Response("Webhook processed successfully", { status: 200 });
+    } catch (error) {
+      console.error("Error processing Clerk webhook:", error);
+      return new Response("Webhook processing failed", { status: 500 });
+    }
+  }),
+});
 
 export default http;

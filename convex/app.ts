@@ -3,29 +3,14 @@ import { mutation, query } from "./_generated/server";
 import { currencyValidator, PLANS } from "@cvx/schema";
 import { asyncMap } from "convex-helpers";
 import { v } from "convex/values";
-import { User } from "~/types";
+// Removed unused User import
 
+// This now uses the new users.ts functions
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx): Promise<User | undefined> => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return undefined;
-    }
-    
-    // Use the Clerk user ID from the JWT
-    const userId = identity.subject;
-    if (!userId) return undefined;
-    
-    // For now, just return user data from Clerk identity
-    // You can implement user creation/storage logic later
-    return {
-      _id: userId as any,
-      _creationTime: Date.now(),
-      email: identity.email,
-      name: identity.name || identity.given_name || undefined,
-      username: identity.username || undefined,
-    } as User;
+  handler: async (ctx) => {
+    // Use the new user sync function
+    return await ctx.runQuery("users:getCurrentUser" as any, {});
   },
 });
 
@@ -36,19 +21,31 @@ export const updateUsername = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+    
+    // Get user from database
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+      
+    if (!user) throw new Error("User not found");
+
+    // Update user record
+    await ctx.db.patch(user._id, { 
+      username: args.username,
+      updatedAt: Date.now(),
+    });
+
+    // Also update userProfile for backward compatibility
     const existingProfile = await ctx.db
       .query("userProfiles")
-      .withIndex("userId", (q) => q.eq("userId", userId as any))
+      .withIndex("userId", (q) => q.eq("userId", user._id))
       .unique();
     if (existingProfile) {
       await ctx.db.patch(existingProfile._id, { username: args.username });
     } else {
       await ctx.db.insert("userProfiles", {
-        userId: userId as any,
+        userId: user._id,
         username: args.username,
       });
     }
@@ -63,37 +60,47 @@ export const completeOnboarding = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      return;
-    }
-    const user = await ctx.db.get(userId as any);
-    if (!user) {
-      return;
-    }
+    
+    // Get user from database
+    const user = await ctx.db
+      .query("users")
+      .withIndex("clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+      
+    if (!user) throw new Error("User not found");
+
+    // Mark onboarding as completed
+    await ctx.db.patch(user._id, { 
+      username: args.username,
+      onboardingCompleted: true,
+      updatedAt: Date.now(),
+    });
+
+    // Update or create userProfile for backward compatibility
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("userId", (q) => q.eq("userId", userId as any))
+      .withIndex("userId", (q) => q.eq("userId", user._id))
       .unique();
     if (profile) {
       await ctx.db.patch(profile._id, { username: args.username });
     } else {
       await ctx.db.insert("userProfiles", {
-        userId: userId as any,
+        userId: user._id,
         username: args.username,
       });
     }
-    if (profile?.customerId) {
-      return;
+    
+    // Create Stripe customer if not exists
+    if (!profile?.customerId) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.stripe.PREAUTH_createStripeCustomer,
+        {
+          currency: args.currency,
+          userId: user._id,
+        },
+      );
     }
-    await ctx.scheduler.runAfter(
-      0,
-      internal.stripe.PREAUTH_createStripeCustomer,
-      {
-        currency: args.currency,
-        userId: userId as any,
-      },
-    );
   },
 });
 
