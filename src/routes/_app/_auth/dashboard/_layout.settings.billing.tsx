@@ -54,7 +54,6 @@ export default function BillingSettings() {
       return;
     }
     const checkoutUrl = await createSubscriptionCheckout({
-      userId: user._id,
       planId: selectedPlanId,
       planInterval: selectedPlanInterval,
       currency,
@@ -68,9 +67,7 @@ export default function BillingSettings() {
     if (!user?.customerId) {
       return;
     }
-    const customerPortalUrl = await createCustomerPortal({
-      userId: user._id,
-    });
+    const customerPortalUrl = await createCustomerPortal();
     if (!customerPortalUrl) {
       return;
     }

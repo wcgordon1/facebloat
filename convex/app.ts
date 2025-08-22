@@ -37,19 +37,35 @@ export const getCurrentUser = query({
       };
     }
 
-    // Get userProfile for additional fields like customerId
-    const userProfile = await ctx.db
-      .query("userProfiles")
-      .withIndex("userId", (q) => q.eq("userId", user._id))
-      .unique();
+    // Get userProfile and subscription for additional fields
+    const [userProfile, subscription] = await Promise.all([
+      ctx.db
+        .query("userProfiles")
+        .withIndex("userId", (q) => q.eq("userId", user._id))
+        .unique(),
+      ctx.db
+        .query("subscriptions")
+        .withIndex("userId", (q) => q.eq("userId", user._id))
+        .unique()
+    ]);
 
-    // Combine user data with profile data for full compatibility
+    // Get plan data if subscription exists
+    const plan = subscription ? await ctx.db.get(subscription.planId) : null;
+
+    // Combine user data with profile and subscription data for full compatibility
     return {
       ...user,
       avatarUrl: user.imageUrl,
       username: user.username || userProfile?.username,
       customerId: userProfile?.customerId,
       imageId: userProfile?.imageId,
+      subscription: subscription ? {
+        ...subscription,
+        plan,
+        planKey: plan?.key,
+        interval: subscription.interval,
+        planId: subscription.planId,
+      } : null,
     };
   },
 });

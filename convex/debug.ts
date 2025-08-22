@@ -3,7 +3,12 @@ import { query } from "./_generated/server";
 export const debugAuthFlow = query({
   args: {},
   handler: async (ctx) => {
-    // No-op or update for Clerk if needed
-    return { status: "Clerk Auth active" };
+    // Check authentication status
+    const identity = await ctx.auth.getUserIdentity();
+    return { 
+      status: "Clerk Auth active",
+      isAuthenticated: !!identity,
+      userId: identity?.subject || null
+    };
   },
 });

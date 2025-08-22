@@ -309,18 +309,13 @@ export const PREAUTH_createFreeStripeSubscription = internalAction({
 export const getCurrentUserSubscription = internalQuery({
   args: {
     planId: v.id("plans"),
+    userId: v.id("users"), // Accept userId as parameter for security
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    const userId = identity.subject;
-    if (!userId) {
-      throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);
-    }
     const [currentSubscription, newPlan] = await Promise.all([
       ctx.db
         .query("subscriptions")
-        .withIndex("userId", (q) => q.eq("userId", userId as any))
+        .withIndex("userId", (q) => q.eq("userId", args.userId))
         .unique(),
       ctx.db.get(args.planId),
     ]);
@@ -356,7 +351,7 @@ export const createSubscriptionCheckout = action({
 
     const { currentSubscription, newPlan } = await ctx.runQuery(
       internal.stripe.getCurrentUserSubscription,
-      { planId: args.planId },
+      { planId: args.planId, userId: user._id },
     );
     if (!currentSubscription?.plan) {
       throw new Error(ERRORS.STRIPE_SOMETHING_WENT_WRONG);

@@ -20,7 +20,7 @@ function DashboardLayout() {
 
   // Sync user to database in background when they first visit
   useEffect(() => {
-    if (user && !user.createdAt) {
+    if (user && !('createdAt' in user)) {
       // User is loaded from Clerk but not yet in database, sync them
       syncUser({}).catch(console.error);
     }
