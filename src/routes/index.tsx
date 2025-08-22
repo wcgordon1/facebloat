@@ -131,7 +131,7 @@ function Index() {
             {siteConfig.siteTitle}
           </Button>
           <h1 className="text-center text-6xl font-bold leading-tight text-primary md:text-7xl lg:leading-tight">
-            Proven strategies
+            Proven strategies 
             <br />
             to reduce Face Bloat
           </h1>
