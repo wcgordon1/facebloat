@@ -67,7 +67,7 @@ export default function BillingSettings() {
     if (!user?.customerId) {
       return;
     }
-    const customerPortalUrl = await createCustomerPortal();
+    const customerPortalUrl = await createCustomerPortal({});
     if (!customerPortalUrl) {
       return;
     }
