@@ -26,7 +26,7 @@ function DashboardLayout() {
     }
   }, [user, syncUser]);
 
-  if (user === null) {
+  if (!user) {
     return (
       <div className="flex min-h-[100vh] w-full items-center justify-center">
         <p>Setting up your account...</p>
