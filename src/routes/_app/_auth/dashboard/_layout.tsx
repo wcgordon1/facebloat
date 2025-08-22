@@ -18,18 +18,18 @@ function DashboardLayout() {
     mutationFn: useConvexMutation(api.app.syncCurrentUser),
   });
 
-  // Sync user to database in background when they first visit
+  // Sync user to database when getCurrentUser returns null (user not in DB yet)
   useEffect(() => {
-    if (user && !('createdAt' in user)) {
-      // User is loaded from Clerk but not yet in database, sync them
+    if (user === null) {
+      // User is authenticated in Clerk but not in database, sync them
       syncUser({}).catch(console.error);
     }
   }, [user, syncUser]);
 
-  if (!user) {
+  if (user === null) {
     return (
       <div className="flex min-h-[100vh] w-full items-center justify-center">
-        <p>Loading...</p>
+        <p>Setting up your account...</p>
       </div>
     );
   }

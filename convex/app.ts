@@ -3,12 +3,24 @@ import { mutation, query } from "./_generated/server";
 import { currencyValidator, PLANS } from "@cvx/schema";
 import { asyncMap } from "convex-helpers";
 import { v } from "convex/values";
-// Removed unused User import
+import { Doc } from "./_generated/dataModel";
+
+// Define the expected return type to match types.ts User type
+type UserWithProfile = Doc<"users"> & {
+  username?: string;
+  imageId?: Doc<"userProfiles">["imageId"];
+  image?: string;
+  customerId?: string;
+  avatarUrl?: string;
+  subscription?: Doc<"subscriptions"> & {
+    planKey: Doc<"plans">["key"];
+  };
+};
 
 // Get current user with automatic creation if needed
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<UserWithProfile | null> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
@@ -19,22 +31,8 @@ export const getCurrentUser = query({
 
     if (!user) {
       // User exists in Clerk but not in our database
-      // This can happen before webhooks are set up or for existing users
-      // Return a temporary user object with Clerk data
-      return {
-        _id: identity.subject as any,
-        _creationTime: Date.now(),
-        clerkId: identity.subject,
-        email: typeof identity.email === 'string' ? identity.email : undefined,
-        name: typeof identity.name === 'string' ? identity.name : 
-              typeof identity.given_name === 'string' ? identity.given_name : undefined,
-        username: typeof identity.username === 'string' ? identity.username : undefined,
-        imageUrl: typeof identity.picture === 'string' ? identity.picture : undefined,
-        onboardingCompleted: false,
-        // Legacy fields for compatibility
-        avatarUrl: typeof identity.picture === 'string' ? identity.picture : undefined,
-        customerId: undefined as string | undefined,
-      };
+      // Return null and let the frontend handle user creation
+      return null;
     }
 
     // Get userProfile and subscription for additional fields
@@ -61,11 +59,8 @@ export const getCurrentUser = query({
       imageId: userProfile?.imageId,
       subscription: subscription ? {
         ...subscription,
-        plan,
-        planKey: plan?.key,
-        interval: subscription.interval,
-        planId: subscription.planId,
-      } : null,
+        planKey: plan?.key || "free",
+      } : undefined,
     };
   },
 });
