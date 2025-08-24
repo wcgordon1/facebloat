@@ -101,6 +101,63 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
   const [yesterdayVibe, setYesterdayVibe] = useState<string>('');
   const [stressLevel, setStressLevel] = useState<string>('');
   const [isProcessingInput, setIsProcessingInput] = useState(false);
+  const [referenceScans, setReferenceScans] = useState(0);
+  const [precisionRate, setPrecisionRate] = useState(81);
+
+  // Animated counters synchronized with progress bar
+  useEffect(() => {
+    if (isComplete || progress >= 100) {
+      // Final values when complete
+      setReferenceScans(12438);
+      setPrecisionRate(95.8);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      // Calculate target values based on progress (0-92% during analysis)
+      const analysisProgress = Math.min(progress / 92, 1); // Scale to 0-1 for 0-92% range
+      
+      // Reference Scans: 0 → 12,438 based on progress
+      const targetRefScans = Math.floor(12438 * analysisProgress);
+      setReferenceScans(prev => {
+        const diff = targetRefScans - prev;
+        if (Math.abs(diff) <= 1) return targetRefScans;
+        
+        // Sometimes pause (20% chance), sometimes jump forward
+        const rand = Math.random();
+        if (rand < 0.2) return prev; // 20% chance to pause (working hard)
+        
+        // Variable increments based on how far behind we are
+        let increment;
+        if (diff > 1000) increment = Math.floor(Math.random() * 200) + 50; // Big jumps when far behind
+        else if (diff > 100) increment = Math.floor(Math.random() * 50) + 10; // Medium jumps
+        else increment = Math.floor(Math.random() * 10) + 1; // Small increments when close
+        
+        return Math.min(prev + increment, targetRefScans);
+      });
+
+      // Precision Rate: 81 → 95.8 based on progress
+      const targetPrecision = 81 + (14.8 * analysisProgress); // 81 + 14.8 = 95.8
+      setPrecisionRate(prev => {
+        const diff = targetPrecision - prev;
+        if (Math.abs(diff) <= 0.1) return targetPrecision;
+        
+        // Sometimes pause (25% chance), sometimes jump forward
+        const rand = Math.random();
+        if (rand < 0.25) return prev; // 25% chance to pause (processing)
+        
+        // Variable increments based on how far behind we are
+        let increment;
+        if (diff > 2) increment = (Math.random() * 0.8) + 0.2; // Big jumps when far behind
+        else if (diff > 0.5) increment = (Math.random() * 0.3) + 0.1; // Medium jumps  
+        else increment = (Math.random() * 0.1) + 0.05; // Small increments when close
+        
+        return Math.min(prev + increment, targetPrecision);
+      });
+    }, 200); // Update every 200ms for realistic timing
+
+    return () => clearInterval(interval);
+  }, [progress, isComplete]);
 
   useEffect(() => {
     if (isComplete) return;
@@ -351,6 +408,8 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                               index++;
                             } else {
                               clearInterval(interval);
+                              // Navigate to Clerk signup
+                              window.location.href = '/signup';
                             }
                           }, 800);
                         }}
@@ -381,10 +440,10 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Current Analysis - Fixed Height Scrollable */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
-                <Zap className="h-5 w-5" />
+              <span className="text-sm font-medium text-primary flex items-center gap-2">
+                <Zap className="h-4 w-4" />
                 Current Analysis
-              </h3>
+              </span>
               
               <div id="analysis-steps-container" className="h-80 overflow-y-auto pr-2 space-y-4 border border-border/50 rounded-lg p-4 bg-muted/20">
                 {analysisSteps.map((step, index) => (
@@ -445,10 +504,10 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
             {/* Live Stats */}
             <div className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
-                  <Target className="h-5 w-5" />
+                <span className="text-sm font-medium text-primary flex items-center gap-2">
+                  <Target className="h-4 w-4" />
                   Live Analysis Data
-                </h3>
+                </span>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <Card className="p-3 bg-muted/50 border-l-4 border-l-purple-500 animate-pulse">
@@ -460,11 +519,11 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                     <div className="text-xs text-muted-foreground">Neural Calculations</div>
                   </Card>
                   <Card className="p-3 bg-muted/50 border-l-4 border-l-purple-600 animate-pulse">
-                    <div className="text-xl font-bold text-primary">12,438</div>
+                    <div className="text-xl font-bold text-primary">{referenceScans.toLocaleString()}</div>
                     <div className="text-xs text-muted-foreground">Reference Scans</div>
                   </Card>
                   <Card className="p-3 bg-muted/50 border-l-4 border-l-purple-300 animate-pulse">
-                    <div className="text-xl font-bold text-primary">94.2%</div>
+                    <div className="text-xl font-bold text-primary">{precisionRate.toFixed(1)}%</div>
                     <div className="text-xs text-muted-foreground">Precision Rate</div>
                   </Card>
                 </div>
