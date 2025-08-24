@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Button } from '../button';
-import { Card } from '../card';
+import { Card, CardContent } from '../card';
 import { cn } from '@/utils/misc';
 import { CheckCircle2, Loader2, Target, Zap } from 'lucide-react';
 import { FaceScanningVisualization } from './face-scanning-visualization';
@@ -48,30 +48,30 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     }
   }, [currentStep, isComplete, finalProcessing]);
 
-  // Handle escape key to close popup
+  // Handle escape key to close analyzer
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && finalProcessing) {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [finalProcessing, onClose]);
+  }, [onClose]);
 
   const currentStepData = fakeAnalysisScript.analysisSteps[currentStep];
   const currentItem = currentStepData?.items[currentItemIndex];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl bg-card border-2 border-primary/20 shadow-2xl">
-        <div className="p-8 space-y-8">
+    <div className="w-full max-w-md md:max-w-6xl mx-auto">
+      <Card className="w-full bg-card border-2 border-primary/20 shadow-2xl">
+        <CardContent className="pt-6 space-y-6">
 
           {/* Progress Bar */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-primary">Analysis Progress</span>
+              <span className="text-sm font-medium text-primary">Face Bloat Analysis</span>
               <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
@@ -280,15 +280,15 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
             </div>
           </div>
 
-          {/* Close button (only show if not in final processing) */}
+          {/* Close button */}
           {!finalProcessing && !isComplete && (
-            <div className="flex justify-center">
+            <div className="flex justify-end">
               <Button variant="ghost" onClick={onClose} className="text-muted-foreground">
-                Cancel Analysis
+                ← Exit Analysis
               </Button>
             </div>
           )}
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

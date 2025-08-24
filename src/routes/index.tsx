@@ -165,6 +165,13 @@ function Index() {
             Free AI analysis • No signup required • Results in 15 seconds
           </p>
         </div>
+
+        {/* Face Bloat Analyzer */}
+        {showAnalyzer && (
+          <div className="w-full py-8">
+            <FaceBloatAnalyzer onClose={() => setShowAnalyzer(false)} />
+          </div>
+        )}
         <div className="flex w-full flex-col items-center justify-center gap-2">
           <h2 className="text-center font-serif text-xl font-medium text-primary/60">
             Built for Developers
@@ -671,11 +678,7 @@ function Index() {
       />
       <div className="base-grid fixed h-screen w-screen opacity-40" />
       <div className="fixed bottom-0 h-screen w-screen bg-gradient-to-t from-[hsl(var(--card))] to-transparent" />
-      
-      {/* Face Bloat Analyzer Modal */}
-      {showAnalyzer && (
-        <FaceBloatAnalyzer onClose={() => setShowAnalyzer(false)} />
-      )}
+
     </div>
   );
 }
