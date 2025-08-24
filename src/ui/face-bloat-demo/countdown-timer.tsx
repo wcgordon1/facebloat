@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface CountdownTimerProps {
   initialMinutes?: number;
@@ -32,17 +32,45 @@ export function CountdownTimer({ initialMinutes = 10, onExpire }: CountdownTimer
   const seconds = timeLeft % 60;
 
   const isUrgent = timeLeft <= 300; // Last 5 minutes
+  const totalSeconds = initialMinutes * 60;
+  const progressPercentage = ((totalSeconds - timeLeft) / totalSeconds) * 100;
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+    <div className={`relative px-6 py-4 rounded-xl border-2 shadow-lg ${
       isUrgent 
-        ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300' 
-        : 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300'
+        ? 'bg-gradient-to-r from-red-500 to-orange-500 border-red-400 text-white animate-pulse' 
+        : 'bg-gradient-to-r from-orange-500 to-red-500 border-orange-400 text-white'
     }`}>
-      <Clock className={`h-4 w-4 ${isUrgent ? 'animate-pulse' : ''}`} />
-      <span className="text-sm font-medium">
-        Analysis expires in {minutes}:{seconds.toString().padStart(2, '0')}
-      </span>
+      {/* Warning Icon */}
+      <div className="flex items-center justify-center gap-3 mb-2">
+        <AlertTriangle className={`h-6 w-6 ${isUrgent ? 'animate-bounce' : 'animate-pulse'}`} />
+        <span className="text-lg font-bold tracking-wide">
+          RESULTS EXPIRE:
+        </span>
+      </div>
+      
+      {/* Time Display */}
+      <div className="flex items-center justify-center gap-1 mb-3">
+        <div className="relative">
+          <span 
+            className="text-4xl md:text-5xl font-mono font-black tracking-wider"
+            style={{
+              animation: 'digitFlip 1s ease-in-out infinite',
+              textShadow: '0 0 10px rgba(255,255,255,0.5)'
+            }}
+          >
+            {minutes}:{seconds.toString().padStart(2, '0')}
+          </span>
+        </div>
+      </div>
+      
+      {/* Progress Bar */}
+      <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+        <div 
+          className="h-full bg-white transition-all duration-1000 ease-out"
+          style={{ width: `${progressPercentage}%` }}
+        />
+      </div>
     </div>
   );
 }
