@@ -1,3 +1,4 @@
+import React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Logo } from "../ui/logo";
 import { cn } from "@/utils/misc";
@@ -8,6 +9,7 @@ import siteConfig from "~/site.config";
 import { ThemeSwitcherHome } from "@/ui/theme-switcher";
 import { BMI } from "@/ui/bmi";
 import { SimpleChat } from "@/ui/simple-chat";
+import { FaceBloatAnalyzer } from "@/ui/face-bloat-analyzer";
 import ShadowPNG from "/images/shadow.png";
 import { useConvexAuth } from 'convex/react';
 import { SignInButton } from '@clerk/clerk-react';
@@ -18,6 +20,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { isLoading, isAuthenticated } = useConvexAuth();
+  const [showAnalyzer, setShowAnalyzer] = React.useState(false);
   const theme = "dark";
   return (
     <div className="relative flex h-full w-full flex-col bg-card">
@@ -143,25 +146,24 @@ function Index() {
             <br className="hidden lg:inline-block" /> Stripe integration.
             TanStack-powered. Open Source.
           </p>
-          <div className="mt-2 flex w-full items-center justify-center gap-2">
+          <div className="mt-8 flex w-full items-center justify-center gap-4">
+            <Button
+              onClick={() => setShowAnalyzer(true)}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              Analyze My Face Bloat →
+            </Button>
             <Link
               to="/login"
-              className={cn(buttonVariants({ size: "sm" }), "hidden sm:flex")}
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "hidden sm:flex")}
             >
               Get Started
             </Link>
-            <a
-              href="https://github.com/get-convex/convex-saas/tree/main/docs"
-              target="_blank"
-              rel="noreferrer"
-              className={cn(
-                buttonVariants({ size: "sm", variant: "outline" }),
-                "hidden dark:bg-secondary dark:hover:opacity-80 sm:flex",
-              )}
-            >
-              Explore Documentation
-            </a>
           </div>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Free AI analysis • No signup required • Results in 15 seconds
+          </p>
         </div>
         <div className="flex w-full flex-col items-center justify-center gap-2">
           <h2 className="text-center font-serif text-xl font-medium text-primary/60">
@@ -669,6 +671,11 @@ function Index() {
       />
       <div className="base-grid fixed h-screen w-screen opacity-40" />
       <div className="fixed bottom-0 h-screen w-screen bg-gradient-to-t from-[hsl(var(--card))] to-transparent" />
+      
+      {/* Face Bloat Analyzer Modal */}
+      {showAnalyzer && (
+        <FaceBloatAnalyzer onClose={() => setShowAnalyzer(false)} />
+      )}
     </div>
   );
 }
