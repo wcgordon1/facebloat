@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '../button';
 import { Link } from "@tanstack/react-router";
+import { CountdownTimer } from './countdown-timer';
+import { TrustBadges } from './trust-badges';
+import { MobileProgressBar } from './mobile-progress-bar';
+import { SwipeableInsights } from './swipeable-insights';
 
 interface FaceScanningVisualizationProps {
   progress: number;
@@ -66,8 +70,17 @@ export function FaceScanningVisualization({
   }, [isComplete, analysisTexts.length]);
   if (isComplete) {
     return (
-      <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
-        <div className="space-y-6 py-4">
+      <>
+        {/* Mobile Progress Bar */}
+        <MobileProgressBar />
+        
+        <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
+          <div className="space-y-6 py-4">
+            
+            {/* Countdown Timer */}
+            <div className="flex justify-center">
+              <CountdownTimer initialMinutes={10} />
+            </div>
           {/* User Photo with Success Overlay - Made Bigger */}
           <div className="flex justify-center">
             <div className="relative">
@@ -94,7 +107,7 @@ export function FaceScanningVisualization({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <CheckCircle2 className="h-4 w-4" />
-                <span className="text-sm font-medium">Your FaceBloat Score: <span className="blur-[2px] select-none">7.23</span></span>
+                <span className="text-sm font-medium">Your FaceBloat Score: <span className="blur-[2px] select-none animate-pulse bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent font-bold">7.23</span></span>
               </div>
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <CheckCircle2 className="h-4 w-4" />
@@ -110,8 +123,11 @@ export function FaceScanningVisualization({
               </div>
             </div>
 
+            {/* Mobile Swipeable Insights */}
+            <SwipeableInsights />
+
             {/* Side-by-side layout on desktop, stacked on mobile */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Locked Insights */}
               <div className="bg-muted/50 rounded-lg p-4 border border-muted-foreground/20 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
@@ -172,12 +188,23 @@ export function FaceScanningVisualization({
               </Button>
             </Link>
             
-            <p className="text-xs text-center text-muted-foreground">
-              Private • Secure • No spam 
-            </p>
+            <TrustBadges />
           </div>
         </div>
+        
+        {/* Sticky CTA for Mobile */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 shadow-lg z-50">
+          <Link to="/signup">
+            <Button 
+              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl text-base"
+              onClick={onSignupClick}
+            >
+              🎉 UNLOCK ANALYSIS
+            </Button>
+          </Link>
+        </div>
       </div>
+      </>
     );
   }
 
