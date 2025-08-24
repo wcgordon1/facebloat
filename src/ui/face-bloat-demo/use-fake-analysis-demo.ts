@@ -33,10 +33,14 @@ export interface DemoState {
 export interface DemoActions {
   handleUserInput: (type: 'sleep' | 'vibe' | 'stress', value: string) => void;
   startSignupFlow: () => void;
+  startDemo: () => void;
   resetDemo: () => void;
 }
 
 export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [DemoState, DemoActions] {
+  // Demo control state
+  const [demoStarted, setDemoStarted] = useState(false);
+  
   // Step progression state
   const [currentStep, setCurrentStep] = useState(0);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
@@ -124,7 +128,7 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
 
   // Step progression logic
   useEffect(() => {
-    if (isComplete) return;
+    if (!demoStarted || isComplete) return;
 
     const step = config.analysisSteps[currentStep];
     if (!step) return;
@@ -149,7 +153,7 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
     }, baseInterval);
 
     return () => stepTimer.clearAll();
-  }, [currentStep, currentItemIndex, isComplete, config, stepTimer]);
+  }, [currentStep, currentItemIndex, demoStarted, isComplete, config, stepTimer]);
 
   // Progress calculation
   useEffect(() => {
@@ -220,6 +224,7 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
 
   const resetDemo = useCallback(() => {
     stepTimer.clearAll();
+    setDemoStarted(false);
     setCurrentStep(0);
     setCurrentItemIndex(0);
     setProgress(0);
@@ -237,6 +242,11 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
     setSignupProcessing(false);
     setSignupProcessingText('');
   }, [config, stepTimer]);
+
+  // Start demo function
+  const startDemo = useCallback(() => {
+    setDemoStarted(true);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -265,6 +275,7 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
   const actions: DemoActions = {
     handleUserInput,
     startSignupFlow,
+    startDemo,
     resetDemo
   };
 

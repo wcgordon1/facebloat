@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../button';
 import { Card, CardContent } from '../card';
 import { cn } from '@/utils/misc';
 import { CheckCircle2, Loader2, Target, Zap } from 'lucide-react';
 import { FaceScanningVisualization } from './face-scanning-visualization';
+import { SelfieDemo } from './selfie-demo';
 import { useFakeAnalysisDemo } from './use-fake-analysis-demo';
 import { fakeAnalysisScript } from './fake-analysis-script';
 
@@ -12,6 +13,8 @@ interface FaceBloatAnalyzerProps {
 }
 
 export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
+  const [showSelfieCapture, setShowSelfieCapture] = useState(true);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const [demoState, demoActions] = useFakeAnalysisDemo();
   
   const {
@@ -48,6 +51,18 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     }
   }, [currentStep, isComplete, finalProcessing]);
 
+  // Handle photo approval - start the analysis
+  const handlePhotoApproved = (croppedPhoto: string) => {
+    setUserPhoto(croppedPhoto);
+    setShowSelfieCapture(false);
+    demoActions.startDemo(); // Start the analysis after photo is taken
+  };
+
+  // Handle selfie cancel
+  const handleSelfieCancel = () => {
+    onClose();
+  };
+
   // Handle escape key to close analyzer
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -67,6 +82,18 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     <div className="w-full max-w-md md:max-w-6xl mx-auto">
       <Card className="w-full bg-card border-2 border-primary/20 shadow-2xl">
         <CardContent className="pt-6 space-y-6">
+
+          {/* Selfie Capture Phase */}
+          {showSelfieCapture && (
+            <SelfieDemo 
+              onPhotoApproved={handlePhotoApproved}
+              onCancel={handleSelfieCancel}
+            />
+          )}
+
+          {/* Analysis Phase */}
+          {!showSelfieCapture && (
+            <>
 
           {/* Progress Bar */}
           <div className="space-y-3">
@@ -110,6 +137,7 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
               isComplete={isComplete}
               signupProcessing={signupProcessing}
               signupProcessingText={signupProcessingText}
+              userPhoto={userPhoto}
               onSignupClick={demoActions.startSignupFlow}
             />
           )}
@@ -287,6 +315,8 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                 ← Exit Analysis
               </Button>
             </div>
+          )}
+          </>
           )}
         </CardContent>
       </Card>
