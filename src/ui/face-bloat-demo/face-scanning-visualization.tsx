@@ -96,7 +96,7 @@ export function FaceScanningVisualization({
             </Link>
             
             <p className="text-xs text-green-600 dark:text-green-400">
-              Private • No spam • Magic link login
+              Private • Secure 
             </p>
           </div>
         </div>
@@ -106,11 +106,14 @@ export function FaceScanningVisualization({
 
   return (
     <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
-      <div className="flex items-center justify-center space-x-4">
-        <div className="relative">
+      {/* Mobile: Vertical layout, Desktop: Horizontal layout */}
+      <div className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-6 md:space-y-0">
+        
+        {/* Face scan oval - Centered on mobile, left on desktop */}
+        <div className="flex justify-center md:justify-start flex-shrink-0">
           {userPhoto ? (
-            /* User's Photo - Made Bigger */
-            <div className="w-32 h-40 rounded-full relative overflow-hidden border-2 border-primary/30">
+            /* User's Photo - Responsive sizing */
+            <div className="w-40 h-48 md:w-44 md:h-52 rounded-full relative overflow-hidden border-2 border-primary/30 flex items-center justify-center">
               <img 
                 src={userPhoto} 
                 alt="Your face scan" 
@@ -127,7 +130,7 @@ export function FaceScanningVisualization({
             </div>
           ) : (
             /* Fallback artificial face */
-            <div className="w-24 h-32 bg-gradient-to-b from-primary/20 to-primary/5 rounded-full relative overflow-hidden">
+            <div className="w-40 h-48 md:w-44 md:h-52 bg-gradient-to-b from-primary/20 to-primary/5 rounded-full relative overflow-hidden">
               {/* Scanning line effect */}
               <div 
                 className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-pulse"
@@ -166,14 +169,20 @@ export function FaceScanningVisualization({
             </div>
           )}
         </div>
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-3 text-primary">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-base font-medium">Scanning Active</span>
+        
+        {/* Scanning status - Below image on mobile, right side on desktop */}
+        <div className="flex-1 flex flex-col justify-center items-center md:items-start space-y-4">
+          <div className="flex items-center gap-3 text-primary">
+            {/* Green pulse: same size on mobile, 3x bigger on desktop */}
+            <div className="w-4 h-4 md:w-12 md:h-12 bg-green-500 rounded-full animate-pulse" />
+            {/* Scanning Active text: same size on mobile, 3x bigger on desktop */}
+            <span className="text-lg md:text-5xl font-medium">Scanning Active</span>
           </div>
-          <div className="text-sm text-muted-foreground h-5 overflow-hidden">
+          
+          {/* Fixed height container for cycling text - Match analysis steps size */}
+          <div className="relative h-8 md:h-6 overflow-hidden text-center md:text-left w-full">
             <div 
-              className={`transition-all duration-300 ${
+              className={`absolute inset-0 flex items-center justify-center md:justify-start text-sm text-muted-foreground transition-all duration-300 ${
                 textState === 'striking' ? 'line-through opacity-60' : 
                 textState === 'swiping' ? 'transform translate-x-[-100%] opacity-0' : 
                 'transform translate-x-0 opacity-100'

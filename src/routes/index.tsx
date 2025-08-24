@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Logo } from "../ui/logo";
 import { cn } from "@/utils/misc";
@@ -21,6 +21,20 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [showAnalyzer, setShowAnalyzer] = React.useState(false);
+  const analyzerRef = useRef<HTMLDivElement>(null);
+  
+  const handleStartAnalysis = () => {
+    setShowAnalyzer(true);
+    // Scroll to analyzer after a brief delay to ensure it's rendered
+    setTimeout(() => {
+      analyzerRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }, 100);
+  };
+  
   const theme = "dark";
   return (
     <div className="relative flex h-full w-full flex-col bg-card">
@@ -148,7 +162,7 @@ function Index() {
           </p>
           <div className="mt-8 flex w-full items-center justify-center gap-4">
             <Button
-              onClick={() => setShowAnalyzer(true)}
+              onClick={handleStartAnalysis}
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
@@ -168,7 +182,7 @@ function Index() {
 
         {/* Face Bloat Analyzer */}
         {showAnalyzer && (
-          <div className="w-full py-8">
+          <div ref={analyzerRef} className="w-full py-8">
             <FaceBloatAnalyzer onClose={() => setShowAnalyzer(false)} />
           </div>
         )}
