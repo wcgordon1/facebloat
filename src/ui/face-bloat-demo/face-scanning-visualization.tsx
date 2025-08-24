@@ -67,36 +67,113 @@ export function FaceScanningVisualization({
   if (isComplete) {
     return (
       <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
-        <div className="text-center space-y-6 py-8">
+        <div className="space-y-6 py-4">
+          {/* User Photo with Success Overlay - Made Bigger */}
+          <div className="flex justify-center">
+            <div className="relative">
+              {userPhoto ? (
+                <div className="w-28 h-32 rounded-full overflow-hidden border-3 border-green-500 shadow-lg">
+                  <img 
+                    src={userPhoto} 
+                    alt="Your analysis complete" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-28 h-32 bg-gradient-to-b from-primary/20 to-primary/5 rounded-full border-3 border-green-500 shadow-lg" />
+              )}
+              {/* Green check overlay - Same size */}
+              <div className="absolute -top-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <CheckCircle2 className="h-5 w-5 text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Results Summary */}
           <div className="space-y-4">
-            <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto animate-pulse" />
-            <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">Analysis Complete!</h3>
-            <p className="text-green-700 dark:text-green-300">
-              Your personalized FaceBloat report is ready
-            </p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Your FaceBloat Score: <span className="blur-[2px] select-none">7.23</span></span>
+              </div>
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">7 Primary Bloat Triggers Identified</span>
+              </div>
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Personalized Bloat Recovery Timeline</span>
+              </div>
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">24 Custom Recommendations Generated</span>
+              </div>
+            </div>
+
+            {/* Side-by-side layout on desktop, stacked on mobile */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Locked Insights */}
+              <div className="bg-muted/50 rounded-lg p-4 border border-muted-foreground/20 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🔒</span>
+                  <span className="text-sm font-semibold text-foreground">EXCLUSIVE INSIGHTS LOCKED:</span>
+                </div>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li>• Advanced bloat pattern analysis</li>
+                  <li>• Day-by-day optimization schedule</li>
+                  <li>• Photo-specific improvement tactics</li>
+                  <li>• Weekly progress tracking system</li>
+                </ul>
+              </div>
+
+              {/* Urgency Section */}
+              <div className="bg-orange-50 dark:bg-orange-950/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800 shadow-sm">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300">
+                    <span className="text-base">⚠️</span>
+                    <span className="text-sm font-semibold">DON'T LET ANOTHER MONTH PASS LOOKING PUFFY</span>
+                  </div>
+                  <div className="space-y-1 text-xs text-orange-700 dark:text-orange-400">
+                    <div className="flex items-center gap-2">
+                      <span>😤</span>
+                      <span>While you wait, your bloat patterns get worse</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📸</span>
+                      <span>Stop avoiding cameras and mirrors</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>🎯</span>
+                      <span>Join 2,000+ people who took action this month</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div className="max-w-sm mx-auto space-y-3">
+          {/* CTA Button */}
+          <div className="space-y-3">
             <Link to="/signup">
               <Button 
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transform hover:scale-105 transition-all duration-200 text-base"
                 onClick={onSignupClick}
               >
                 {signupProcessing ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {signupProcessingText || 'Processing...'}
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>{signupProcessingText || 'Processing...'}</span>
                   </div>
                 ) : (
                   <>
-                    🎉 UNLOCK NOW - FREE
+                    🎉 UNLOCK ANALYSIS
                   </>
                 )}
               </Button>
             </Link>
             
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Private • Secure 
+            <p className="text-xs text-center text-muted-foreground">
+              Private • Secure • No spam 
             </p>
           </div>
         </div>
