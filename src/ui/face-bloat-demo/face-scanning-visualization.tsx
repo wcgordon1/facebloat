@@ -46,6 +46,22 @@ export function FaceScanningVisualization({
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [textState, setTextState] = useState<'showing' | 'striking' | 'swiping'>('showing');
 
+  // Auto-scroll to results when analysis completes
+  useEffect(() => {
+    if (isComplete) {
+      // Small delay to ensure the results are rendered
+      setTimeout(() => {
+        const resultsElement = document.getElementById('analysis-results-section');
+        if (resultsElement) {
+          resultsElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
+    }
+  }, [isComplete]);
+
   // Cycle through analysis texts
   useEffect(() => {
     if (isComplete) return;
@@ -74,7 +90,7 @@ export function FaceScanningVisualization({
         {/* Mobile Progress Bar */}
         <MobileProgressBar />
         
-      <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
+      <div id="analysis-results-section" className="bg-muted/30 rounded-lg p-6 border-2 border-dashed border-primary/20">
           <div className="space-y-6 py-4">
             
             {/* Countdown Timer */}
@@ -89,7 +105,7 @@ export function FaceScanningVisualization({
                   <img 
                     src={userPhoto} 
                     alt="Your analysis complete" 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                   {/* Animated scanning lines - continues after analysis */}
                   <div className="absolute inset-0">
@@ -526,7 +542,7 @@ export function FaceScanningVisualization({
             {/* Green pulse: same size on mobile, 3x bigger on desktop */}
             <div className="w-4 h-4 md:w-12 md:h-12 bg-green-500 rounded-full animate-pulse" />
             {/* Scanning Active text: same size on mobile, 3x bigger on desktop */}
-            <span className="text-lg md:text-5xl font-medium">Scanning Active</span>
+            <span className="text-lg md:text-5xl font-semibold">Scanning Active</span>
           </div>
           
           {/* Fixed height container for cycling text - Match analysis steps size */}
