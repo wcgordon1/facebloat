@@ -210,7 +210,7 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
               {/* Micro-commitments */}
               {progress > 30 && !stressLevel && (
                 <div className="space-y-3">
-                  <h4 className="font-medium text-primary">Quick question while we analyze:</h4>
+                  <h4 className="font-medium text-primary">Improve accuracy in your analysis:</h4>
                   
                   {isProcessingInput && (
                     <div className="flex items-center gap-2 text-primary">
@@ -221,7 +221,7 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                   
                   {!sleepHours && !isProcessingInput && (
                     <>
-                      <p className="text-sm text-muted-foreground">Typical sleep last night?</p>
+                      <p className="text-sm text-muted-foreground">Typical sleep in a night?</p>
                       <div className="grid grid-cols-2 gap-2">
                         {['5h', '6h', '7h', '8h+'].map((option) => (
                           <Button
@@ -240,9 +240,9 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
 
                   {sleepHours && !yesterdayVibe && !isProcessingInput && (
                     <>
-                      <p className="text-sm text-muted-foreground">Yesterday's vibe?</p>
+                      <p className="text-sm text-muted-foreground">Yesterday you...</p>
                       <div className="grid grid-cols-2 gap-2">
-                        {['High sodium', 'High carbs', 'Low water', 'Stressed'].map((option) => (
+                        {['High sodium', 'High carbs', 'Low water', 'Consumed alcohol'].map((option) => (
                           <Button
                             key={option}
                             variant="outline"

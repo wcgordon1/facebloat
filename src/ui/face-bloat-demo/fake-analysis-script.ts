@@ -130,11 +130,11 @@ export const fakeAnalysisScript: DemoConfig = {
 
   microCommitmentQuestions: {
     sleep: {
-      question: 'Typical sleep last night?',
+      question: 'Typical sleep in a night?',
       options: ['5h', '6h', '7h', '8h+']
     },
     vibe: {
-      question: "Yesterday's vibe?",
+      question: "Yesterday you were...",
       options: ['High sodium', 'High carbs', 'Low water', 'Stressed']
     },
     stress: {
