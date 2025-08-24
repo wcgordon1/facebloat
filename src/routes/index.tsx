@@ -9,7 +9,7 @@ import siteConfig from "~/site.config";
 import { ThemeSwitcherHome } from "@/ui/theme-switcher";
 import { BMI } from "@/ui/bmi";
 import { SimpleChat } from "@/ui/simple-chat";
-import { FaceBloatAnalyzer } from "@/ui/face-bloat-analyzer";
+import { FaceBloatAnalyzer } from "@/ui/face-bloat-demo";
 import ShadowPNG from "/images/shadow.png";
 import { useConvexAuth } from 'convex/react';
 import { SignInButton } from '@clerk/clerk-react';
@@ -150,7 +150,7 @@ function Index() {
             <Button
               onClick={() => setShowAnalyzer(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               Analyze My Face Bloat →
             </Button>
