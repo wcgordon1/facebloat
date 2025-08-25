@@ -121,7 +121,7 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
       // Send MediaPipe results to parent for display
       if (onMediaPipeResults) {
         const mediaPipeResults: MediaPipeResults = {
-          faceCropUrl: faceBlobUrl,
+          faceCropUrl: faceBlobUrl, // This should now be available
           roiResults: rois.map(r => ({
             regionKey: r.regionKey,
             label: r.label,
@@ -129,6 +129,7 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
           }))
         };
         console.log("📤 Sending MediaPipe results to parent");
+        console.log("🖼️ Face crop URL:", faceBlobUrl ? "✅ Available" : "❌ Missing");
         onMediaPipeResults(mediaPipeResults);
       }
       

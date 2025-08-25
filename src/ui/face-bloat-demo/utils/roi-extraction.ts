@@ -9,8 +9,17 @@ export function roiFromIndices(
   regionKey: RegionKey,
   cropWidth: number,
   cropHeight: number,
-  padPx = 12
+  padPx?: number
 ): Box {
+  // Region-specific padding for better visibility
+  const defaultPadding = padPx ?? (() => {
+    if (regionKey.includes('EYE')) return 20; // More padding for eyes
+    if (regionKey === 'LIPS_OUTER') return 18; // More padding for lips
+    if (regionKey.includes('CHEEK')) return 16; // Medium padding for cheeks
+    return 12; // Default padding for face oval
+  })();
+  
+  const actualPadding = padPx ?? defaultPadding;
   console.log(`🎯 Computing ROI for ${regionKey}`);
   
   const indices = FACE_REGIONS[regionKey];
@@ -35,12 +44,13 @@ export function roiFromIndices(
   const maxY = Math.max(...ys);
   
   console.log(`📏 Raw ${regionKey} bounds: x=${minX.toFixed(1)}-${maxX.toFixed(1)}, y=${minY.toFixed(1)}-${maxY.toFixed(1)}`);
+  console.log(`📐 Using ${actualPadding}px padding for ${regionKey}`);
   
   // Apply padding and clamp to crop boundaries
-  const paddedMinX = Math.max(0, minX - padPx);
-  const paddedMinY = Math.max(0, minY - padPx);
-  const paddedMaxX = Math.min(cropWidth, maxX + padPx);
-  const paddedMaxY = Math.min(cropHeight, maxY + padPx);
+  const paddedMinX = Math.max(0, minX - actualPadding);
+  const paddedMinY = Math.max(0, minY - actualPadding);
+  const paddedMaxX = Math.min(cropWidth, maxX + actualPadding);
+  const paddedMaxY = Math.min(cropHeight, maxY + actualPadding);
   
   const roi: Box = {
     x: paddedMinX,
@@ -49,7 +59,7 @@ export function roiFromIndices(
     height: paddedMaxY - paddedMinY
   };
   
-  console.log(`📦 ${regionKey} ROI (${padPx}px padding): x=${roi.x.toFixed(1)}, y=${roi.y.toFixed(1)}, w=${roi.width.toFixed(1)}, h=${roi.height.toFixed(1)}`);
+  console.log(`📦 ${regionKey} ROI (${actualPadding}px padding): x=${roi.x.toFixed(1)}, y=${roi.y.toFixed(1)}, w=${roi.width.toFixed(1)}, h=${roi.height.toFixed(1)}`);
   
   // Validate ROI size
   if (roi.width <= 0 || roi.height <= 0) {
@@ -133,8 +143,8 @@ export async function extractAllROIs(
     try {
       console.log(`\n🎯 Processing ${regionKey}...`);
       
-      // Compute ROI bounding box
-      const roiBox = roiFromIndices(landmarksCropSpace, regionKey, cropWidth, cropHeight, 12);
+      // Compute ROI bounding box (using region-specific padding)
+      const roiBox = roiFromIndices(landmarksCropSpace, regionKey, cropWidth, cropHeight);
       
       // Skip if invalid ROI
       if (roiBox.width <= 0 || roiBox.height <= 0) {

@@ -26,6 +26,7 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
   const [showSelfieCapture, setShowSelfieCapture] = useState(true);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const [mediaPipeResults, setMediaPipeResults] = useState<MediaPipeResults | null>(null);
+  const [revealedRegions, setRevealedRegions] = useState<number>(0); // For sequential animation
   const [demoState, demoActions] = useFakeAnalysisDemo();
   
   const {
@@ -77,6 +78,16 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
   const handleMediaPipeResults = (results: MediaPipeResults) => {
     console.log("📊 Received MediaPipe results:", results);
     setMediaPipeResults(results);
+    setRevealedRegions(0); // Reset animation
+    
+    // Start sequential reveal animation
+    console.log("🎬 Starting sequential reveal animation");
+    results.roiResults.forEach((_, index) => {
+      setTimeout(() => {
+        console.log(`✨ Revealing region ${index + 1}/${results.roiResults.length}`);
+        setRevealedRegions(prev => prev + 1);
+      }, (index + 1) * 500); // 500ms delay between each reveal
+    });
   };
 
   // Handle selfie cancel
@@ -199,20 +210,29 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                     🔬 Extracted Facial Regions ({mediaPipeResults.roiResults.length})
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {mediaPipeResults.roiResults.map((roi, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square border-2 border-primary/20">
-                          <img
-                            src={roi.url}
-                            alt={roi.label}
-                            className="w-full h-full object-cover"
-                          />
+                    {mediaPipeResults.roiResults.map((roi, index) => {
+                      const isRevealed = index < revealedRegions;
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square border-2 border-primary/20">
+                            {isRevealed ? (
+                              <img
+                                src={roi.url}
+                                alt={roi.label}
+                                className="w-full h-full object-cover animate-in fade-in duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs text-center text-muted-foreground">
+                            {isRevealed ? roi.label : "Analyzing..."}
+                          </div>
                         </div>
-                        <div className="text-xs text-center text-muted-foreground">
-                          {roi.label}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
