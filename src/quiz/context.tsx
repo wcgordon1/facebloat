@@ -4,7 +4,6 @@ import type {
   Question, 
   Answers, 
   ProfileState, 
-  DerivedProfile, 
   ScoreResult, 
   Letter 
 } from './types';

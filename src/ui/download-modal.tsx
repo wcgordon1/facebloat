@@ -8,7 +8,6 @@ import {
   FileText, 
   Image, 
   FileDown,
-  Copy,
   Check,
   X,
   Clock

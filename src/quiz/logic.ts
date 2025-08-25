@@ -116,7 +116,6 @@ export function scoreQuiz(quiz: Quiz, answers: Answers, route: GenderRoute): Sco
         totalWeight += questionWeight;
 
         // Collect answer context for results
-        const category = quiz.categories.find(cat => cat.id === categoryId);
         answerContexts.push({
           questionId: question.id,
           questionText: question.text,

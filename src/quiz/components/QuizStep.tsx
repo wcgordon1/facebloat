@@ -1,7 +1,6 @@
-import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
 import { Button } from '@/ui/button';
-import { Loader2, ChevronLeft, ChevronRight, User, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/utils/misc';
 import { useQuiz } from '../context';
 import type { Letter } from '../types';

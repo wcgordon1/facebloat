@@ -41,8 +41,8 @@ export interface CaptureOptions {
 
 // Placeholder for future implementation
 export async function captureDesktopResults(
-  resultsElementId: string, 
-  options: CaptureOptions
+  _resultsElementId: string, 
+  _options: CaptureOptions
 ): Promise<Blob> {
   throw new Error('Desktop capture not yet implemented');
 }
@@ -53,6 +53,6 @@ export function createHiddenDesktopContainer(): HTMLElement {
 }
 
 // Placeholder for cleanup
-export function cleanupHiddenContainer(container: HTMLElement): void {
+export function cleanupHiddenContainer(_container: HTMLElement): void {
   throw new Error('Container cleanup not yet implemented');
 }
