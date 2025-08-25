@@ -10,6 +10,7 @@ import { ThemeSwitcherHome } from "@/ui/theme-switcher";
 import { BMI } from "@/ui/bmi";
 import { SimpleChat } from "@/ui/simple-chat";
 import { FaceBloatAnalyzer } from "@/ui/face-bloat-demo";
+import { FaceBloatQuiz } from "@/quiz";
 import ShadowPNG from "/images/shadow.png";
 import { useConvexAuth } from 'convex/react';
 import { SignInButton } from '@clerk/clerk-react';
@@ -21,13 +22,27 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [showAnalyzer, setShowAnalyzer] = React.useState(false);
+  const [showQuiz, setShowQuiz] = React.useState(false);
   const analyzerRef = useRef<HTMLDivElement>(null);
+  const quizRef = useRef<HTMLDivElement>(null);
   
   const handleStartAnalysis = () => {
     setShowAnalyzer(true);
     // Scroll to analyzer after a brief delay to ensure it's rendered
     setTimeout(() => {
       analyzerRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }, 100);
+  };
+
+  const handleStartQuiz = () => {
+    setShowQuiz(true);
+    // Scroll to quiz after a brief delay to ensure it's rendered
+    setTimeout(() => {
+      quizRef.current?.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'start',
         inline: 'nearest'
@@ -168,17 +183,26 @@ function Index() {
             >
               Analyze My Face Bloat →
             </Button>
-            <Link
-              to="/login"
-              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "hidden sm:flex")}
+            <Button
+              onClick={handleStartQuiz}
+              size="lg"
+              variant="outline"
+              className="hidden sm:flex"
             >
-              Get Started
-            </Link>
+              Take Quiz
+            </Button>
           </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Free AI analysis • No signup required • Results in 15 seconds
           </p>
         </div>
+
+        {/* Face Bloat Quiz */}
+        {showQuiz && (
+          <div ref={quizRef} className="w-full">
+            <FaceBloatQuiz onClose={() => setShowQuiz(false)} />
+          </div>
+        )}
 
         {/* Face Bloat Analyzer */}
         {showAnalyzer && (

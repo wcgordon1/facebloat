@@ -1,0 +1,269 @@
+{
+  "version": "1.0.0",
+  "letterPoints": {
+    "A": 0,
+    "B": 1,
+    "C": 2,
+    "D": 3,
+    "E": 4,
+    "F": 5,
+    "G": 6,
+    "H": 7
+  },
+  "scoreBands": [
+    {
+      "min": 0,
+      "max": 19,
+      "band": "low",
+      "label": "Low Risk",
+      "blurb": "Great job! You have excellent habits that minimize face bloat. Keep up the good work!"
+    },
+    {
+      "min": 20,
+      "max": 39,
+      "band": "mild",
+      "label": "Mild Risk", 
+      "blurb": "You're doing well overall, but there are a few areas where small changes could make a big difference."
+    },
+    {
+      "min": 40,
+      "max": 59,
+      "band": "moderate",
+      "label": "Moderate Risk",
+      "blurb": "Several factors are contributing to facial puffiness. The good news? These are all manageable with the right approach."
+    },
+    {
+      "min": 60,
+      "max": 100,
+      "band": "high",
+      "label": "High Risk",
+      "blurb": "Multiple factors are likely causing significant facial bloating. Let's create a comprehensive plan to address these issues."
+    }
+  ],
+  "categories": [
+    {
+      "id": "sleep",
+      "label": "Sleep & Recovery"
+    },
+    {
+      "id": "hydration",
+      "label": "Hydration & Electrolytes"
+    },
+    {
+      "id": "nutrition",
+      "label": "Nutrition & Timing"
+    }
+  ],
+  "categoryWeights": {
+    "male": {
+      "sleep": 40,
+      "hydration": 35,
+      "nutrition": 25
+    },
+    "female": {
+      "sleep": 35,
+      "hydration": 30,
+      "nutrition": 35
+    }
+  },
+  "profile": {
+    "fields": [
+      {
+        "id": "age",
+        "label": "Age Range",
+        "type": "select",
+        "options": [
+          { "value": "18-25", "label": "18-25" },
+          { "value": "26-35", "label": "26-35" },
+          { "value": "36-45", "label": "36-45" },
+          { "value": "46-55", "label": "46-55" },
+          { "value": "55+", "label": "55+" },
+          { "value": "prefer-not-to-say", "label": "Prefer not to say" }
+        ]
+      },
+      {
+        "id": "menstruates",
+        "label": "Do you currently menstruate?",
+        "type": "select",
+        "options": [
+          { "value": "yes", "label": "Yes" },
+          { "value": "no", "label": "No" },
+          { "value": "prefer-not-to-say", "label": "Prefer not to say" }
+        ]
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "sleep_quality",
+      "appliesTo": "all",
+      "categoryId": "sleep",
+      "text": "How would you describe your sleep quality over the past week?",
+      "acute": false,
+      "options": [
+        {
+          "letter": "A",
+          "title": "Excellent - 8+ hours, deep sleep, wake refreshed",
+          "points": 0,
+          "context": "Perfect! Quality sleep is your secret weapon against facial puffiness. Your cortisol levels stay balanced and fluid retention minimized."
+        },
+        {
+          "letter": "B", 
+          "title": "Good - 7-8 hours, mostly restful",
+          "points": 1,
+          "context": "Great sleep habits! Minor improvements in consistency could give you even better results."
+        },
+        {
+          "letter": "C",
+          "title": "Fair - 6-7 hours, some restless nights",
+          "points": 2,
+          "context": "Consider establishing a bedtime routine and aiming for 7.5-8 hours to reduce morning puffiness."
+        },
+        {
+          "letter": "D",
+          "title": "Poor - 5-6 hours, frequently interrupted",
+          "points": 3,
+          "context": "Sleep debt significantly impacts facial fluid retention. Prioritizing sleep will show results within days."
+        },
+        {
+          "letter": "E",
+          "title": "Very poor - less than 5 hours most nights",
+          "points": 4,
+          "context": "Severe sleep deprivation is a major driver of facial bloating. This should be your #1 priority to address."
+        },
+        {
+          "letter": "F",
+          "title": "Irregular - wildly varying sleep schedule",
+          "points": 5,
+          "context": "Sleep schedule inconsistency disrupts your circadian rhythm and stress hormones. Stabilizing your bedtime is crucial."
+        },
+        {
+          "letter": "G",
+          "title": "Chronic insomnia - difficulty falling/staying asleep",
+          "points": 6,
+          "context": "Chronic sleep issues require a comprehensive approach. Consider sleep hygiene changes and potentially professional support."
+        },
+        {
+          "letter": "H",
+          "title": "Sleep disorders - diagnosed sleep apnea or similar",
+          "points": 7,
+          "context": "Sleep disorders directly impact facial swelling. Work with your healthcare provider while implementing complementary strategies."
+        }
+      ]
+    },
+    {
+      "id": "water_intake",
+      "appliesTo": "all", 
+      "categoryId": "hydration",
+      "text": "How much water do you typically drink per day?",
+      "acute": true,
+      "options": [
+        {
+          "letter": "A",
+          "title": "2.5+ liters, evenly spaced throughout day",
+          "points": 0,
+          "context": "Excellent hydration strategy! Consistent water intake helps your body release excess sodium and reduces puffiness."
+        },
+        {
+          "letter": "B",
+          "title": "2-2.5 liters, mostly consistent",
+          "points": 1,
+          "context": "Good hydration! Try spacing intake more evenly and consider electrolyte balance for optimal results."
+        },
+        {
+          "letter": "C",
+          "title": "1.5-2 liters, somewhat irregular",
+          "points": 2,
+          "context": "Increase to 2+ liters and focus on consistency. Your kidneys will better regulate fluid balance."
+        },
+        {
+          "letter": "D",
+          "title": "1-1.5 liters, often forget to drink",
+          "points": 3,
+          "context": "Mild dehydration signals your body to retain water, causing puffiness. Set hourly reminders to sip water."
+        },
+        {
+          "letter": "E",
+          "title": "Less than 1 liter, rely on other beverages",
+          "points": 4,
+          "context": "Significant dehydration is likely contributing to facial bloating. Pure water should be your primary beverage."
+        },
+        {
+          "letter": "F",
+          "title": "Minimal water, mostly coffee/sodas",
+          "points": 5,
+          "context": "Caffeine and sugar worsen dehydration. Replace half your drinks with water for immediate improvement."
+        },
+        {
+          "letter": "G",
+          "title": "Drink when thirsty only",
+          "points": 6,
+          "context": "Thirst indicates you're already dehydrated. Proactive hydration is key to reducing facial puffiness."
+        },
+        {
+          "letter": "H",
+          "title": "Often go entire days with minimal fluids",
+          "points": 7,
+          "context": "Severe dehydration forces your body into conservation mode, causing significant facial swelling. Start with small, frequent sips."
+        }
+      ]
+    },
+    {
+      "id": "sodium_intake",
+      "appliesTo": "all",
+      "categoryId": "nutrition", 
+      "text": "How often do you eat high-sodium foods (processed foods, restaurant meals, chips, etc.)?",
+      "acute": true,
+      "options": [
+        {
+          "letter": "A",
+          "title": "Rarely - cook fresh, whole foods daily",
+          "points": 0,
+          "context": "Perfect! Low sodium intake prevents excess fluid retention. Your face benefits from this clean eating approach."
+        },
+        {
+          "letter": "B",
+          "title": "Occasionally - 1-2 times per week",
+          "points": 1,
+          "context": "Great balance! When you do indulge, drink extra water and consider potassium-rich foods the next day."
+        },
+        {
+          "letter": "C",
+          "title": "Moderately - 3-4 times per week",
+          "points": 2,
+          "context": "Try reducing by one meal per week and add potassium-rich foods (bananas, spinach) to balance sodium."
+        },
+        {
+          "letter": "D",
+          "title": "Frequently - 5-6 times per week",
+          "points": 3,
+          "context": "High sodium intake is likely a major contributor to facial puffiness. Focus on home cooking for faster results."
+        },
+        {
+          "letter": "E",
+          "title": "Daily - at least one high-sodium meal/snack",
+          "points": 4,
+          "context": "Daily sodium spikes cause persistent facial bloating. Start by replacing one processed meal with fresh ingredients."
+        },
+        {
+          "letter": "F",
+          "title": "Multiple times daily - processed foods dominate",
+          "points": 5,
+          "context": "Excessive sodium is overwhelming your kidneys' ability to regulate fluid. Gradual reduction will show quick face changes."
+        },
+        {
+          "letter": "G",
+          "title": "Almost exclusively - convenience/fast foods",
+          "points": 6,
+          "context": "Ultra-processed foods contain sodium levels that guarantee facial puffiness. Even small fresh food additions help."
+        },
+        {
+          "letter": "H",
+          "title": "Extreme - add extra salt to already salty foods",
+          "points": 7,
+          "context": "Sodium overconsumption is creating chronic facial swelling. Professional nutrition guidance may be beneficial alongside gradual changes."
+        }
+      ]
+    }
+  ]
+}
