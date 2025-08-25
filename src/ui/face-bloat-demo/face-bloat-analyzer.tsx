@@ -31,6 +31,10 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     sleepHours,
     yesterdayVibe,
     stressLevel,
+    waterIntake,
+    dairyConsumption,
+    grainsBloating,
+    artificialSweeteners,
     isProcessingInput,
     signupProcessing,
     signupProcessingText
@@ -235,10 +239,13 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                 </div>
               </div>
 
-              {/* Micro-commitments */}
-              {progress > 30 && !stressLevel && (
+              {/* Questions Flow */}
+              {progress > 30 && (
                 <div className="space-y-3">
-                  <h4 className="font-medium text-primary">Improve accuracy in your analysis:</h4>
+                  <h4 className="font-medium text-primary flex items-center gap-2">
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    {artificialSweeteners ? "All set, thank you!" : "Improve accuracy in your analysis: ⬅️"}
+                  </h4>
                   
                   {isProcessingInput && (
                     <div className="flex items-center gap-2 text-primary">
@@ -295,6 +302,82 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => demoActions.handleUserInput('stress', option)}
+                            className="text-xs"
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {stressLevel && !waterIntake && !isProcessingInput && (
+                    <>
+                      <p className="text-sm text-muted-foreground">How much water do you drink daily?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Less than 4 cups', '4-6 cups', '6-8 cups', 'More than 8 cups'].map((option) => (
+                          <Button
+                            key={option}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => demoActions.handleUserInput('water', option)}
+                            className="text-xs"
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {waterIntake && !dairyConsumption && !isProcessingInput && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Do you consume dairy products regularly?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Multiple times daily', 'Once daily', 'Few times per week', 'Rarely/avoid dairy'].map((option) => (
+                          <Button
+                            key={option}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => demoActions.handleUserInput('dairy', option)}
+                            className="text-xs"
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {dairyConsumption && !grainsBloating && !isProcessingInput && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Do you experience bloating more after eating certain grains or bread?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Always after wheat/bread', 'Sometimes after grains', 'Occasionally', 'No connection noticed'].map((option) => (
+                          <Button
+                            key={option}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => demoActions.handleUserInput('grains', option)}
+                            className="text-xs"
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {grainsBloating && !artificialSweeteners && !isProcessingInput && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Do you chew gum or consume sugar-free products with artificial sweeteners?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Daily', 'Several times per week', 'Occasionally', 'Never'].map((option) => (
+                          <Button
+                            key={option}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => demoActions.handleUserInput('sweeteners', option)}
                             className="text-xs"
                           >
                             {option}

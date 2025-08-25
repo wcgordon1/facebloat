@@ -23,6 +23,10 @@ export interface DemoState {
   sleepHours: string;
   yesterdayVibe: string;
   stressLevel: string;
+  waterIntake: string;
+  dairyConsumption: string;
+  grainsBloating: string;
+  artificialSweeteners: string;
   isProcessingInput: boolean;
   
   // Signup flow
@@ -31,7 +35,7 @@ export interface DemoState {
 }
 
 export interface DemoActions {
-  handleUserInput: (type: 'sleep' | 'vibe' | 'stress', value: string) => void;
+  handleUserInput: (type: 'sleep' | 'vibe' | 'stress' | 'water' | 'dairy' | 'grains' | 'sweeteners', value: string) => void;
   startSignupFlow: () => void;
   startDemo: () => void;
   resetDemo: () => void;
@@ -61,6 +65,10 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
   const [sleepHours, setSleepHours] = useState<string>('');
   const [yesterdayVibe, setYesterdayVibe] = useState<string>('');
   const [stressLevel, setStressLevel] = useState<string>('');
+  const [waterIntake, setWaterIntake] = useState<string>('');
+  const [dairyConsumption, setDairyConsumption] = useState<string>('');
+  const [grainsBloating, setGrainsBloating] = useState<string>('');
+  const [artificialSweeteners, setArtificialSweeteners] = useState<string>('');
   const [isProcessingInput, setIsProcessingInput] = useState(false);
   
   // Signup flow
@@ -191,7 +199,7 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
   }, [currentStep, currentItemIndex, isComplete, config, finalProcessing]);
 
   // Actions
-  const handleUserInput = useCallback((type: 'sleep' | 'vibe' | 'stress', value: string) => {
+  const handleUserInput = useCallback((type: 'sleep' | 'vibe' | 'stress' | 'water' | 'dairy' | 'grains' | 'sweeteners', value: string) => {
     setIsProcessingInput(true);
     
     setTimeout(() => {
@@ -201,6 +209,14 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
         setYesterdayVibe(value);
       } else if (type === 'stress') {
         setStressLevel(value);
+      } else if (type === 'water') {
+        setWaterIntake(value);
+      } else if (type === 'dairy') {
+        setDairyConsumption(value);
+      } else if (type === 'grains') {
+        setGrainsBloating(value);
+      } else if (type === 'sweeteners') {
+        setArtificialSweeteners(value);
       }
       setIsProcessingInput(false);
     }, config.timing.userInputProcessingDelay);
@@ -238,6 +254,10 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
     setSleepHours('');
     setYesterdayVibe('');
     setStressLevel('');
+    setWaterIntake('');
+    setDairyConsumption('');
+    setGrainsBloating('');
+    setArtificialSweeteners('');
     setIsProcessingInput(false);
     setSignupProcessing(false);
     setSignupProcessingText('');
@@ -267,6 +287,10 @@ export function useFakeAnalysisDemo(config: DemoConfig = fakeAnalysisScript): [D
     sleepHours,
     yesterdayVibe,
     stressLevel,
+    waterIntake,
+    dairyConsumption,
+    grainsBloating,
+    artificialSweeteners,
     isProcessingInput,
     signupProcessing,
     signupProcessingText
