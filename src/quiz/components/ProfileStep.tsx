@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
 import { Button } from '@/ui/button';
-import { Select } from '@/ui/select';
+import { Input } from '@/ui/input';
+import { Switch } from '@/ui/switch';
 import { cn } from '@/utils/misc';
 import { useQuiz } from '../context';
 
 export function ProfileStep() {
   const { profile, setProfile, goToStep, quiz } = useQuiz();
+  const [isMetric, setIsMetric] = useState<boolean>(true);
 
   const handleFieldChange = (fieldId: string, value: string) => {
     setProfile({
@@ -73,48 +75,59 @@ export function ProfileStep() {
 
           {/* Optional BMI Calculator Section */}
           <div className="pt-4 border-t border-border">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4">
-              Optional: Basic Measurements
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Optional: Basic Measurements
+              </h3>
+              <div className="flex items-center space-x-2">
+                <span className={cn("text-xs", isMetric ? "text-primary" : "text-muted-foreground")}>
+                  Metric
+                </span>
+                <Switch
+                  checked={!isMetric}
+                  onCheckedChange={(checked) => setIsMetric(!checked)}
+                />
+                <span className={cn("text-xs", !isMetric ? "text-primary" : "text-muted-foreground")}>
+                  Imperial
+                </span>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Height</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Height"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={profile.height || ""}
-                    onChange={(e) => setProfile({ ...profile, height: parseFloat(e.target.value) || undefined })}
-                  />
-                  <Select
-                    value={profile.heightUnit || "cm"}
-                    onValueChange={(value: "cm" | "ft") => setProfile({ ...profile, heightUnit: value })}
-                  >
-                    <option value="cm">cm</option>
-                    <option value="ft">ft</option>
-                  </Select>
-                </div>
+                <label className="text-sm font-medium">
+                  Height ({isMetric ? "cm" : "inches"})
+                </label>
+                <Input
+                  type="number"
+                  placeholder={isMetric ? "Enter height in cm" : "Enter height in inches"}
+                  value={profile.height || ""}
+                  onChange={(e) => setProfile({ 
+                    ...profile, 
+                    height: parseFloat(e.target.value) || undefined,
+                    heightUnit: isMetric ? "cm" : "ft"
+                  })}
+                  min="0"
+                  step="0.1"
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Weight</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Weight"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={profile.weight || ""}
-                    onChange={(e) => setProfile({ ...profile, weight: parseFloat(e.target.value) || undefined })}
-                  />
-                  <Select
-                    value={profile.weightUnit || "kg"}
-                    onValueChange={(value: "kg" | "lbs") => setProfile({ ...profile, weightUnit: value })}
-                  >
-                    <option value="kg">kg</option>
-                    <option value="lbs">lbs</option>
-                  </Select>
-                </div>
+                <label className="text-sm font-medium">
+                  Weight ({isMetric ? "kg" : "lbs"})
+                </label>
+                <Input
+                  type="number"
+                  placeholder={isMetric ? "Enter weight in kg" : "Enter weight in lbs"}
+                  value={profile.weight || ""}
+                  onChange={(e) => setProfile({ 
+                    ...profile, 
+                    weight: parseFloat(e.target.value) || undefined,
+                    weightUnit: isMetric ? "kg" : "lbs"
+                  })}
+                  min="0"
+                  step="0.1"
+                />
               </div>
             </div>
           </div>
