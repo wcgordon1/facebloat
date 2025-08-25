@@ -1,15 +1,27 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Camera, Check, X, RotateCcw, AlertCircle } from "lucide-react";
 import { Button } from "@/ui/button";
+import { FacialAnalysis } from "./facial-analysis";
 
-type CaptureState = "idle" | "camera-loading" | "camera-active" | "photo-taken";
+type CaptureState = "idle" | "camera-loading" | "camera-active" | "photo-taken" | "analyzing";
+
+// MediaPipe results interface (matching face-bloat-analyzer)
+interface MediaPipeResults {
+  faceCropUrl: string;
+  roiResults: Array<{
+    regionKey: string;
+    label: string;
+    url: string;
+  }>;
+}
 
 interface SelfieDemoProps {
   onPhotoApproved: (croppedPhoto: string) => void;
   onCancel: () => void;
+  onMediaPipeResults?: (results: MediaPipeResults) => void;
 }
 
-export function SelfieDemo({ onPhotoApproved, onCancel }: SelfieDemoProps) {
+export function SelfieDemo({ onPhotoApproved, onCancel, onMediaPipeResults }: SelfieDemoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -160,53 +172,25 @@ export function SelfieDemo({ onPhotoApproved, onCancel }: SelfieDemoProps) {
     stopCamera(false);
   }, [stopCamera]);
 
-  // Crop photo to oval shape and approve
-  const approvePhoto = useCallback(() => {
-    if (!capturedPhoto || !canvasRef.current) return;
+  // Start facial analysis with the captured photo
+  const startAnalysis = useCallback(() => {
+    if (!capturedPhoto) return;
     
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    // Create image from captured photo
-    const img = new Image();
-    img.onload = () => {
-      // Set canvas size for cropping
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Create oval clipping path (fixed dimensions like the guide ring)
-      // Guide ring is 280x360px (or smaller if constrained), centered at 50%, 45%
-      const centerX = canvas.width * 0.5;
-      const centerY = canvas.height * 0.45;
-      
-      // Calculate radius based on consistent proportions
-      const targetWidth = Math.min(280, canvas.width * 0.7);
-      const targetHeight = Math.min(360, canvas.height * 0.6);
-      const radiusX = targetWidth / 2;
-      const radiusY = targetHeight / 2;
-      
-      ctx.save();
-      ctx.beginPath();
-      ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-      ctx.clip();
-      
-      // Draw the image within the clipped area
-      ctx.drawImage(img, 0, 0);
-      ctx.restore();
-      
-      // Get the cropped image as data URL
-      const croppedDataUrl = canvas.toDataURL("image/png", 0.8);
-      
-      // Pass the cropped photo to parent
-      onPhotoApproved(croppedDataUrl);
-    };
-    
-    img.src = capturedPhoto;
-  }, [capturedPhoto, onPhotoApproved]);
+    console.log("🚀 Starting facial analysis with captured photo");
+    setCaptureState("analyzing");
+  }, [capturedPhoto]);
+
+  // Handle retake from facial analysis
+  const handleRetakeFromAnalysis = useCallback(() => {
+    console.log("🔄 Retaking photo from facial analysis");
+    setCapturedPhoto(null);
+    setCaptureState("idle");
+    setError(null);
+    // Restart camera automatically
+    setTimeout(() => {
+      startCamera();
+    }, 100);
+  }, [startCamera]);
 
   // Reject photo and reset
   const rejectPhoto = useCallback(() => {
@@ -389,7 +373,7 @@ export function SelfieDemo({ onPhotoApproved, onCancel }: SelfieDemoProps) {
             
             <div className="flex gap-3">
               <Button 
-                onClick={approvePhoto}
+                onClick={startAnalysis}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 <Check className="h-4 w-4 mr-2" />
@@ -405,6 +389,16 @@ export function SelfieDemo({ onPhotoApproved, onCancel }: SelfieDemoProps) {
               </Button>
             </div>
           </div>
+        )}
+
+        {/* Facial Analysis */}
+        {captureState === "analyzing" && capturedPhoto && (
+          <FacialAnalysis 
+            capturedPhoto={capturedPhoto}
+            onRetake={handleRetakeFromAnalysis}
+            onAnalysisComplete={onPhotoApproved}
+            onMediaPipeResults={onMediaPipeResults}
+          />
         )}
 
         {/* Error Message */}

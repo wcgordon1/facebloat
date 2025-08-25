@@ -2,6 +2,7 @@
 export { FaceBloatAnalyzer } from './face-bloat-analyzer.tsx';
 export { FaceScanningVisualization } from './face-scanning-visualization.tsx';
 export { SelfieDemo } from './selfie-demo.tsx';
+export { FacialAnalysis } from './facial-analysis.tsx';
 export { CountdownTimer } from './countdown-timer.tsx';
 export { TrustBadges } from './trust-badges.tsx';
 export { MobileProgressBar } from './mobile-progress-bar.tsx';

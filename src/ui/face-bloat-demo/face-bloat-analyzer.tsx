@@ -12,9 +12,20 @@ interface FaceBloatAnalyzerProps {
   onClose: () => void;
 }
 
+// MediaPipe results interface
+interface MediaPipeResults {
+  faceCropUrl: string;
+  roiResults: Array<{
+    regionKey: string;
+    label: string;
+    url: string;
+  }>;
+}
+
 export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
   const [showSelfieCapture, setShowSelfieCapture] = useState(true);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [mediaPipeResults, setMediaPipeResults] = useState<MediaPipeResults | null>(null);
   const [demoState, demoActions] = useFakeAnalysisDemo();
   
   const {
@@ -55,11 +66,17 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     }
   }, [currentStep, isComplete, finalProcessing]);
 
-  // Handle photo approval - start the analysis
+  // Handle photo approval with MediaPipe results
   const handlePhotoApproved = (croppedPhoto: string) => {
     setUserPhoto(croppedPhoto);
     setShowSelfieCapture(false);
     demoActions.startDemo(); // Start the analysis after photo is taken
+  };
+
+  // Handle MediaPipe analysis results
+  const handleMediaPipeResults = (results: MediaPipeResults) => {
+    console.log("📊 Received MediaPipe results:", results);
+    setMediaPipeResults(results);
   };
 
   // Handle selfie cancel
@@ -92,6 +109,7 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
             <SelfieDemo 
               onPhotoApproved={handlePhotoApproved}
               onCancel={handleSelfieCancel}
+              onMediaPipeResults={handleMediaPipeResults}
             />
           )}
 
@@ -144,6 +162,61 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
               userPhoto={userPhoto}
               onSignupClick={demoActions.startSignupFlow}
             />
+          )}
+
+          {/* MediaPipe Results Display */}
+          {!finalProcessing && mediaPipeResults && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-primary mb-2">Real-Time Analysis Results</h3>
+                <p className="text-sm text-muted-foreground">
+                  Live facial landmark extraction and region analysis
+                </p>
+              </div>
+
+              {/* Face Detection Result */}
+              {mediaPipeResults.faceCropUrl && (
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    🎯 Detected Face Region
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 max-w-48">
+                      <img
+                        src={mediaPipeResults.faceCropUrl}
+                        alt="Detected face region"
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ROI Results Grid */}
+              {mediaPipeResults.roiResults.length > 0 && (
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    🔬 Extracted Facial Regions ({mediaPipeResults.roiResults.length})
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {mediaPipeResults.roiResults.map((roi, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square border-2 border-primary/20">
+                          <img
+                            src={roi.url}
+                            alt={roi.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="text-xs text-center text-muted-foreground">
+                          {roi.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Analysis Steps */}
