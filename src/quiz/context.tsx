@@ -152,12 +152,15 @@ export function QuizProvider({ children }: QuizProviderProps) {
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
         setIsLoading(false);
-        // Scroll to quiz title with offset for header
+        // Scroll to position title just below the nav
         const titleElement = document.getElementById('quiz-title');
         if (titleElement) {
-          const headerHeight = 80; // Approximate header height
-          const elementTop = titleElement.offsetTop - headerHeight;
-          window.scrollTo({ top: elementTop, behavior: 'smooth' });
+          const titleRect = titleElement.getBoundingClientRect();
+          const currentScrollY = window.scrollY;
+          const titleTopRelativeToDocument = titleRect.top + currentScrollY;
+          const navHeight = 120; // Space for nav + some padding
+          const targetScrollPosition = titleTopRelativeToDocument - navHeight;
+          window.scrollTo({ top: Math.max(0, targetScrollPosition), behavior: 'smooth' });
         }
       }, 800);
     }
@@ -179,12 +182,15 @@ export function QuizProvider({ children }: QuizProviderProps) {
         setResult(scoreResult);
         setCurrentStep('results');
         setIsLoading(false);
-        // Scroll to quiz title for results
+        // Scroll to position title just below the nav
         const titleElement = document.getElementById('quiz-title');
         if (titleElement) {
-          const headerHeight = 80; // Approximate header height
-          const elementTop = titleElement.offsetTop - headerHeight;
-          window.scrollTo({ top: elementTop, behavior: 'smooth' });
+          const titleRect = titleElement.getBoundingClientRect();
+          const currentScrollY = window.scrollY;
+          const titleTopRelativeToDocument = titleRect.top + currentScrollY;
+          const navHeight = 120; // Space for nav + some padding
+          const targetScrollPosition = titleTopRelativeToDocument - navHeight;
+          window.scrollTo({ top: Math.max(0, targetScrollPosition), behavior: 'smooth' });
         }
       }, 1200); // Longer delay for final processing
     } catch (error) {
@@ -200,13 +206,16 @@ export function QuizProvider({ children }: QuizProviderProps) {
     setCurrentStep('profile');
     setCurrentQuestionIndex(0);
     
-    // Scroll to quiz title
+    // Scroll to position title just below the nav
     setTimeout(() => {
       const titleElement = document.getElementById('quiz-title');
       if (titleElement) {
-        const headerHeight = 80; // Approximate header height
-        const elementTop = titleElement.offsetTop - headerHeight;
-        window.scrollTo({ top: elementTop, behavior: 'smooth' });
+        const titleRect = titleElement.getBoundingClientRect();
+        const currentScrollY = window.scrollY;
+        const titleTopRelativeToDocument = titleRect.top + currentScrollY;
+        const navHeight = 120; // Space for nav + some padding
+        const targetScrollPosition = titleTopRelativeToDocument - navHeight;
+        window.scrollTo({ top: Math.max(0, targetScrollPosition), behavior: 'smooth' });
       }
     }, 100);
     

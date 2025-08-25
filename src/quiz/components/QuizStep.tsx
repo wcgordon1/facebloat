@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
 import { Button } from '@/ui/button';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/utils/misc';
 import { useQuiz } from '../context';
 import type { Letter } from '../types';
@@ -53,9 +53,9 @@ export function QuizStep() {
   const canProceed = currentAnswer !== undefined;
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4">
+    <div className="w-full space-y-4">
       {/* Progress Bar */}
-      <div className="w-full bg-muted rounded-full h-2">
+      <div className="w-full bg-muted rounded-full h-2 max-w-md md:max-w-2xl mx-auto">
         <div 
           className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${progressPercentage}%` }}
@@ -63,13 +63,13 @@ export function QuizStep() {
       </div>
 
       {/* Progress Text */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground">
+      <div className="flex justify-between items-center text-sm text-muted-foreground max-w-md md:max-w-2xl mx-auto">
         <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
         <span>{answeredQuestions} answered</span>
       </div>
 
       {/* Question Card */}
-      <Card>
+      <Card className="w-full max-w-md md:max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-lg">
             {currentQuestion.text}
@@ -155,8 +155,9 @@ export function QuizStep() {
               disabled={isLoading}
               className="gap-2"
             >
-              <ChevronLeft className="h-4 w-4" />
-              Back to Profile
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Profile</span>
+              <span className="sm:hidden">Profile</span>
             </Button>
 
             <div className="flex gap-2">
@@ -167,8 +168,8 @@ export function QuizStep() {
                   disabled={isLoading}
                   className="gap-2"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
                 </Button>
               )}
 
@@ -180,14 +181,18 @@ export function QuizStep() {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
+                    <span className="hidden sm:inline">Processing...</span>
                   </>
                 ) : isLastQuestion ? (
-                  "Get My Results →"
+                  <>
+                    <span className="hidden sm:inline">Get My Results</span>
+                    <span className="sm:hidden">Results</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
                 ) : (
                   <>
-                    Next
-                    <ChevronRight className="h-4 w-4" />
+                    <span className="hidden sm:inline">Next</span>
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -197,7 +202,7 @@ export function QuizStep() {
       </Card>
 
       {/* Question Category Indicator */}
-      <div className="text-center">
+      <div className="text-center max-w-md md:max-w-2xl mx-auto">
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
           {currentQuestion.categoryId.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
         </span>

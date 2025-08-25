@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, CardContent } from '@/ui/card';
 import { QuizProvider, useQuiz } from '../context';
 import { ProfileStep } from './ProfileStep';
 import { QuizStep } from './QuizStep';
@@ -22,8 +21,8 @@ function QuizContent() {
   };
 
   return (
-    <div className="w-full py-8 px-4">
-      <div className="container mx-auto">
+    <div className="w-full py-8 px-6">
+      <div className="mx-auto max-w-screen-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 id="quiz-title" className="text-4xl font-bold text-primary mb-2">

@@ -25,8 +25,7 @@ export function ProfileStep() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <Card>
+    <Card className="w-full max-w-md md:max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Quick Profile Setup</CardTitle>
           <CardDescription>
@@ -137,7 +136,6 @@ export function ProfileStep() {
             </Button>
           </div>
         </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 }
