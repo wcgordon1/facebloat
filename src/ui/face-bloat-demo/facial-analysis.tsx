@@ -1,20 +1,20 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/ui/button";
 import { RotateCcw, AlertCircle } from "lucide-react";
 import { detectAndCropFace, loadImageFromDataUrl } from "./utils/detect-and-crop";
 import { extractAllROIs, revokeBlobUrls, canvasToBlobUrl } from "./utils/roi-extraction";
-import { dataURLToBlob, blobToFile } from "./utils/face-detection";
+import { canvasToBlob } from "./utils/canvas";
 import { RegionKey } from "./utils/landmark-utils";
 
 type AnalysisStatus = "idle" | "loading" | "analyzing" | "completed" | "error";
 
-// MediaPipe results interface 
+// MediaPipe results interface - using Blobs for safe URL ownership
 interface MediaPipeResults {
-  faceCropUrl: string;
+  faceCropBlob: Blob;
   roiResults: Array<{
     regionKey: string;
     label: string;
-    url: string;
+    blob: Blob;
   }>;
 }
 
@@ -42,6 +42,9 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
   const [faceCropUrl, setFaceCropUrl] = useState<string>("");
   const [roiResults, setRoiResults] = useState<ROIResult[]>([]);
   const [progress, setProgress] = useState<string>("");
+  
+  // Guard against double analysis runs
+  const analysisStartedRef = useRef(false);
 
   // Cleanup blob URLs when component unmounts or results change
   const cleanupUrls = useCallback(() => {
@@ -91,16 +94,29 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
       console.log("✅ Face detected successfully");
       setProgress("Extracting facial regions...");
       
-      // Convert face crop to blob URL for display
-      const faceBlobUrl = await canvasToBlobUrl(faceResult.cropCanvas);
-      setFaceCropUrl(faceBlobUrl);
+      // Create face crop URL for child's own preview
+      const faceBlobForChildUrl = await canvasToBlobUrl(faceResult.cropCanvas);
+      setFaceCropUrl(faceBlobForChildUrl);
       
-      // Extract ROI regions
+      // Extract ROI regions  
       const regions: RegionKey[] = ["LEFT_EYE", "RIGHT_EYE", "LIPS_OUTER", "FACE_OVAL"];
       const rois = await extractAllROIs(
         faceResult.cropCanvas, 
         faceResult.landmarksCropSpace,
         regions
+      );
+      
+      // Create blobs for parent (separate from child's URLs)
+      const faceBlobForParent = await canvasToBlob(faceResult.cropCanvas);
+      const roisForParent = await Promise.all(
+        rois.map(async (r) => {
+          const blob = await canvasToBlob(r.canvas);
+          return { 
+            regionKey: r.regionKey, 
+            label: r.label, 
+            blob 
+          };
+        })
       );
       
       if (rois.length === 0) {
@@ -118,18 +134,15 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
       setStatus("completed");
       setProgress("");
       
-      // Send MediaPipe results to parent for display
+      // Send MediaPipe results to parent for display (using Blobs for safe ownership)
       if (onMediaPipeResults) {
         const mediaPipeResults: MediaPipeResults = {
-          faceCropUrl: faceBlobUrl, // This should now be available
-          roiResults: rois.map(r => ({
-            regionKey: r.regionKey,
-            label: r.label,
-            url: r.url
-          }))
+          faceCropBlob: faceBlobForParent,
+          roiResults: roisForParent
         };
-        console.log("📤 Sending MediaPipe results to parent");
-        console.log("🖼️ Face crop URL:", faceBlobUrl ? "✅ Available" : "❌ Missing");
+        console.log("📤 Sending MediaPipe results to parent (as Blobs)");
+        console.log("🖼️ Face blob size:", faceBlobForParent.size, "bytes");
+        console.log("🖼️ ROI blobs:", roisForParent.map(r => `${r.label}: ${r.blob.size}b`));
         onMediaPipeResults(mediaPipeResults);
       }
       
@@ -162,11 +175,13 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
     }
   }, [capturedPhoto]);
 
-  // Auto-start analysis when component mounts
+  // Auto-start analysis when component mounts (with guard against double runs)
   useEffect(() => {
-    if (capturedPhoto && status === "idle") {
-      runAnalysis();
-    }
+    if (!capturedPhoto || status !== "idle") return;
+    if (analysisStartedRef.current) return; // Guard against double runs
+    
+    analysisStartedRef.current = true;
+    runAnalysis();
   }, [capturedPhoto, status, runAnalysis]);
 
   // Retry analysis
@@ -174,6 +189,7 @@ export function FacialAnalysis({ capturedPhoto, onRetake, onAnalysisComplete, on
     cleanupUrls();
     setFaceCropUrl("");
     setRoiResults([]);
+    analysisStartedRef.current = false; // Reset guard
     setStatus("idle");
     setError("");
     setProgress("");

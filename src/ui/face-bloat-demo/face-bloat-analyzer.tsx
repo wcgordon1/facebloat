@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '../button';
 import { Card, CardContent } from '../card';
 import { cn } from '@/utils/misc';
@@ -12,14 +12,115 @@ interface FaceBloatAnalyzerProps {
   onClose: () => void;
 }
 
-// MediaPipe results interface
+// MediaPipe results interface - using Blobs for safe URL ownership  
 interface MediaPipeResults {
-  faceCropUrl: string;
+  faceCropBlob: Blob;
   roiResults: Array<{
     regionKey: string;
     label: string;
-    url: string;
+    blob: Blob;
   }>;
+}
+
+// Component to display MediaPipe results with proper blob URL management
+function MediaPipeResultsDisplay({ 
+  results, 
+  revealedRegions 
+}: { 
+  results: MediaPipeResults; 
+  revealedRegions: number; 
+}) {
+  // Create URLs from blobs with proper cleanup
+  const faceUrl = useMemo(() => {
+    console.log("🖼️ Creating face URL from blob:", results.faceCropBlob.size, "bytes");
+    return URL.createObjectURL(results.faceCropBlob);
+  }, [results.faceCropBlob]);
+  
+  const roiUrls = useMemo(() => {
+    console.log("🎯 Creating ROI URLs from", results.roiResults.length, "blobs");
+    return results.roiResults.map((r, index) => {
+      const url = URL.createObjectURL(r.blob);
+      console.log(`  ${index}: ${r.label} → ${url.substring(0, 30)}... (${r.blob.size}b)`);
+      return { ...r, url };
+    });
+  }, [results.roiResults]);
+  
+  // Cleanup URLs when component unmounts or results change
+  useEffect(() => {
+    return () => {
+      console.log("🧹 Cleaning up URLs");
+      URL.revokeObjectURL(faceUrl);
+      roiUrls.forEach((r, index) => {
+        console.log(`  Revoking ${index}: ${r.label}`);
+        URL.revokeObjectURL(r.url);
+      });
+    };
+  }, [faceUrl, roiUrls]);
+  
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-primary mb-2">Real-Time Analysis Results</h3>
+        <p className="text-sm text-muted-foreground">
+          Live facial landmark extraction and region analysis
+        </p>
+      </div>
+
+      {/* Face Detection Result */}
+      <div className="space-y-3">
+        <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          🎯 Detected Face Region
+        </div>
+        <div className="flex justify-center">
+          <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 max-w-48">
+            <img
+              src={faceUrl}
+              alt="Detected face region"
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ROI Results Grid */}
+      {roiUrls.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            🔬 Extracted Facial Regions ({roiUrls.length})
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {roiUrls.map((roi, index) => {
+              const isRevealed = index < revealedRegions;
+              console.log(`🎭 ROI ${index}: ${roi.label} - Revealed: ${isRevealed} (${revealedRegions}/${roiUrls.length})`);
+              
+              return (
+                <div key={index} className="space-y-2">
+                  <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square border-2 border-primary/20">
+                    {isRevealed ? (
+                      <img
+                        src={roi.url}
+                        alt={roi.label}
+                        className="w-full h-full object-cover animate-in fade-in duration-300"
+                        onLoad={() => console.log(`✅ Image loaded: ${roi.label}`)}
+                        onError={() => console.error(`❌ Image failed: ${roi.label} - ${roi.url}`)}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-xs text-center text-muted-foreground">
+                    {isRevealed ? roi.label : "Analyzing..."}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
@@ -80,14 +181,19 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
     setMediaPipeResults(results);
     setRevealedRegions(0); // Reset animation
     
-    // Start sequential reveal animation
+    // Start sequential reveal animation with a small delay to ensure component is rendered
     console.log("🎬 Starting sequential reveal animation");
-    results.roiResults.forEach((_, index) => {
-      setTimeout(() => {
-        console.log(`✨ Revealing region ${index + 1}/${results.roiResults.length}`);
-        setRevealedRegions(prev => prev + 1);
-      }, (index + 1) * 500); // 500ms delay between each reveal
-    });
+    setTimeout(() => {
+      results.roiResults.forEach((_, index) => {
+        setTimeout(() => {
+          console.log(`✨ Revealing region ${index + 1}/${results.roiResults.length}`);
+          setRevealedRegions(prev => {
+            console.log(`📈 RevealedRegions: ${prev} → ${prev + 1}`);
+            return prev + 1;
+          });
+        }, index * 500); // Start immediately, then 500ms delay between each
+      });
+    }, 100); // Small delay to ensure component is mounted
   };
 
   // Handle selfie cancel
@@ -177,66 +283,10 @@ export function FaceBloatAnalyzer({ onClose }: FaceBloatAnalyzerProps) {
 
           {/* MediaPipe Results Display */}
           {!finalProcessing && mediaPipeResults && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-primary mb-2">Real-Time Analysis Results</h3>
-                <p className="text-sm text-muted-foreground">
-                  Live facial landmark extraction and region analysis
-                </p>
-              </div>
-
-              {/* Face Detection Result */}
-              {mediaPipeResults.faceCropUrl && (
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    🎯 Detected Face Region
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 max-w-48">
-                      <img
-                        src={mediaPipeResults.faceCropUrl}
-                        alt="Detected face region"
-                        className="w-full h-auto object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ROI Results Grid */}
-              {mediaPipeResults.roiResults.length > 0 && (
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    🔬 Extracted Facial Regions ({mediaPipeResults.roiResults.length})
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {mediaPipeResults.roiResults.map((roi, index) => {
-                      const isRevealed = index < revealedRegions;
-                      return (
-                        <div key={index} className="space-y-2">
-                          <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square border-2 border-primary/20">
-                            {isRevealed ? (
-                              <img
-                                src={roi.url}
-                                alt={roi.label}
-                                className="w-full h-full object-cover animate-in fade-in duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-xs text-center text-muted-foreground">
-                            {isRevealed ? roi.label : "Analyzing..."}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <MediaPipeResultsDisplay 
+              results={mediaPipeResults} 
+              revealedRegions={revealedRegions} 
+            />
           )}
 
           {/* Analysis Steps */}

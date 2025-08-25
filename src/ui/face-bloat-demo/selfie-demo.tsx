@@ -5,13 +5,13 @@ import { FacialAnalysis } from "./facial-analysis";
 
 type CaptureState = "idle" | "camera-loading" | "camera-active" | "photo-taken" | "analyzing";
 
-// MediaPipe results interface (matching face-bloat-analyzer)
+// MediaPipe results interface - using Blobs for safe URL ownership
 interface MediaPipeResults {
-  faceCropUrl: string;
+  faceCropBlob: Blob;
   roiResults: Array<{
     regionKey: string;
     label: string;
-    url: string;
+    blob: Blob;
   }>;
 }
 

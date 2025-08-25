@@ -84,7 +84,7 @@ export async function detectAndCropFace(imageElement: HTMLImageElement): Promise
       // Log a few sample blendshapes
       if (blendshapes.categories?.length) {
         console.log("🎭 Sample blendshapes:");
-        blendshapes.categories.slice(0, 5).forEach((cat, i) => {
+        blendshapes.categories.slice(0, 5).forEach((cat) => {
           console.log(`  ${cat.categoryName}: ${cat.score?.toFixed(3)}`);
         });
       }
