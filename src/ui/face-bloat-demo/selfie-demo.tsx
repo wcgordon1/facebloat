@@ -237,7 +237,7 @@ export function SelfieDemo({ onPhotoApproved, onCancel }: SelfieDemoProps) {
       <div className="text-center space-y-2">
         <h3 className="text-lg font-semibold text-primary">Position Your Face</h3>
         <p className="text-sm text-muted-foreground">
-          Center your face in the oval guide for accurate analysis
+          Center your face in the oval and look straight ahead. Remove facial distractions. Ensure decent lighting. Neutral expression.
         </p>
       </div>
 

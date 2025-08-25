@@ -199,7 +199,7 @@ export function FaceScanningVisualization({
                     </div>
                     <div className="text-center md:text-right self-center md:self-auto">
                       <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full font-bold text-sm shadow-lg">
-                        3-7 DAYS
+                        6-7 WEEKS
                       </div>
                       <div className="text-xs text-blue-600 mt-1">✨ Personalized</div>
                     </div>
